@@ -25,7 +25,9 @@ still to be built). The site's job: funnel visitors to (1) Google Play packs,
 
 ```
 src/
-  data/        apps.ts (9-app Play catalogue — single source of truth)
+  data/        apps.ts (9-app Play catalogue — single source of truth;
+               series field groups Monoic Series ×4 / Glass Series ×5,
+               seriesMeta holds labels+blurbs; relatedApps prefers same series)
                upcoming.ts (in-development: Monoic Widgets family, BB Icons)
                site.ts (identity, nav, socials)
                play-packages.json (package list for the ingest script)

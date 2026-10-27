@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
-import { apps } from '../data/apps';
+import { apps, seriesMeta } from '../data/apps';
 import { upcoming } from '../data/upcoming';
 import { totalInstalls, metricsAsOf } from '../data/metrics';
 import { p } from '../utils/base';
@@ -61,16 +61,34 @@ const statsAsOf = metricsAsOf()
     </div>
   </section>
 
-  <!-- Full catalogue -->
+  <!-- Catalogue, by series -->
   <section class="section">
     <div class="container">
       <h2>The catalogue</h2>
       <p class="dim" style="max-width: 52ch">
-        Nine apps, one design universe — monocolor minimalism to liquid glass.
-        Every pack works with the launchers you actually use.
+        Nine apps across two series. Every pack works with the launchers you actually use.
       </p>
-      <div class="card-grid" style="margin-top: 2rem">
-        {apps.map((app) => (
+
+      <h3 style="margin-top: 2.5rem">{seriesMeta.monoic.label}</h3>
+      <p class="dim" style="max-width: 52ch">{seriesMeta.monoic.blurb}</p>
+      <div class="card-grid" style="margin-top: 1.25rem">
+        {apps.filter((a) => a.series === 'monoic').map((app) => (
+          <a class="card" href={p(`/apps/${app.slug}/`)}>
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+              <div class="tile">{app.kind === 'mask' ? '◑' : '◐'}</div>
+            </div>
+            <div class="card-body">
+              <div class="title">{app.name}</div>
+              <p>{app.tagline}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <h3 style="margin-top: 3rem">{seriesMeta.glass.label}</h3>
+      <p class="dim" style="max-width: 52ch">{seriesMeta.glass.blurb}</p>
+      <div class="card-grid" style="margin-top: 1.25rem">
+        {apps.filter((a) => a.series === 'glass').map((app) => (
           <a class="card" href={p(`/apps/${app.slug}/`)}>
             <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
               <div class="tile">{app.kind === 'mask' ? '◑' : '◐'}</div>

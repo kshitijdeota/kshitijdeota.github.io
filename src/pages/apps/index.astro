@@ -1,7 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { apps } from '../../data/apps';
-import { priceLabel } from '../../data/apps';
+import { apps, priceLabel, seriesMeta } from '../../data/apps';
 import { site } from '../../data/site';
 import { upcoming } from '../../data/upcoming';
 import { p } from '../../utils/base';
@@ -18,15 +17,17 @@ const jsonld = {
   })),
 };
 
-const packs = apps.filter((a) => a.kind === 'pack');
-const masks = apps.filter((a) => a.kind === 'mask');
+const seriesOrder = ['monoic', 'glass'] as const;
+const bySeries = Object.fromEntries(
+  seriesOrder.map((s) => [s, apps.filter((a) => a.series === s)])
+);
 ---
 
 <Base title="Apps — Android icon packs on Google Play" jsonld={jsonld}>
   <div class="page-head">
     <div class="container">
       <span class="eyebrow">Catalogue</span>
-      <h1>Icon packs &amp; masks for Android</h1>
+      <h1>Two series, one studio</h1>
       <p class="lead">
         Every design below is live on Google Play under the same developer name —
         built around real launchers, real icon coverage, and steady updates.
@@ -36,48 +37,32 @@ const masks = apps.filter((a) => a.kind === 'mask');
 
   <section class="section">
     <div class="container">
-      <h2>Icon packs</h2>
-      <div class="card-grid" style="margin-top: 1.5rem">
-        {packs.map((app) => (
-          <a class="card" href={p(`/apps/${app.slug}/`)}>
-            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
-              <div class="tile">◐</div>
-            </div>
-            <div class="card-body">
-              <div class="title">{app.name}</div>
-              <p>{app.tagline}</p>
-              <div class="badges">
-                {app.rating && <span class="badge highlight">★ {app.rating}</span>}
-                <span class="badge">{app.downloads}</span>
-                <span class="badge">{priceLabel(app)}</span>
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
+      {seriesOrder.map((key) => (
+        <div id={key} style="margin-bottom: 3.5rem">
+          <h2>{seriesMeta[key].label}</h2>
+          <p class="dim" style="max-width: 50ch">{seriesMeta[key].blurb}</p>
+          <div class="card-grid" style="margin-top: 1.5rem">
+            {bySeries[key].map((app) => (
+              <a class="card" href={p(`/apps/${app.slug}/`)}>
+                <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+                  <div class="tile">{app.kind === 'mask' ? '◑' : '◐'}</div>
+                </div>
+                <div class="card-body">
+                  <div class="title">{app.name}</div>
+                  <p>{app.tagline}</p>
+                  <div class="badges">
+                    {app.rating && <span class="badge highlight">★ {app.rating}</span>}
+                    <span class="badge">{app.downloads}</span>
+                    {app.kind === 'mask' && <span class="badge">Icon mask</span>}
+                    <span class="badge">{priceLabel(app)}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
 
-      <h2 style="margin-top: 3.5rem">Icon masks</h2>
-      <p class="dim" style="max-width: 50ch">
-        Masks theme every app on your launcher automatically — one consistent shape,
-        zero per-app swapping.
-      </p>
-      <div class="card-grid" style="margin-top: 1.5rem">
-        {masks.map((app) => (
-          <a class="card" href={p(`/apps/${app.slug}/`)}>
-            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
-              <div class="tile">◑</div>
-            </div>
-            <div class="card-body">
-              <div class="title">{app.name}</div>
-              <p>{app.tagline}</p>
-              <div class="badges">
-                <span class="badge">{app.downloads}</span>
-                <span class="badge">{priceLabel(app)}</span>
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
       <h2 style="margin-top: 3.5rem" id="upcoming">In development</h2>
       <p class="dim" style="max-width: 50ch">
         On the bench right now — this catalogue grows next.

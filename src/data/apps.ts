@@ -15,6 +15,8 @@ export interface AppEntry {
   kind: 'pack' | 'mask';
   /** For Monoic variants — groups cross-promotion links */
   family?: 'monoic';
+  /** Display grouping — Monoic Series vs Glass Series */
+  series: 'monoic' | 'glass';
   price: 'Free · in-app purchase' | 'Paid';
   rating: number | null; // null = unrated / too few reviews
   downloads: string; // Play download band
@@ -34,6 +36,7 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.monoic',
     kind: 'pack',
     family: 'monoic',
+    series: 'monoic',
     price: 'Free · in-app purchase',
     rating: 3.9,
     downloads: '1M+',
@@ -50,6 +53,7 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.monoicblack',
     kind: 'pack',
     family: 'monoic',
+    series: 'monoic',
     price: 'Free · in-app purchase',
     rating: 4.2,
     downloads: '100K+',
@@ -65,6 +69,7 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.monoicsq',
     kind: 'pack',
     family: 'monoic',
+    series: 'monoic',
     price: 'Free · in-app purchase',
     rating: 3.6,
     downloads: '100K+',
@@ -80,6 +85,7 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.monoicsqblack',
     kind: 'pack',
     family: 'monoic',
+    series: 'monoic',
     price: 'Free · in-app purchase',
     rating: 3.7,
     downloads: '100K+',
@@ -94,6 +100,7 @@ export const apps: AppEntry[] = [
     name: 'Glassy Icon Pack',
     pkg: 'com.kdpixels.iconpacks.glassy',
     kind: 'pack',
+    series: 'glass',
     price: 'Paid',
     rating: 4.5,
     downloads: '50K+',
@@ -108,6 +115,7 @@ export const apps: AppEntry[] = [
     name: 'Glass Waves Icon Pack',
     pkg: 'com.kdpixels.iconpacks.waves',
     kind: 'pack',
+    series: 'glass',
     price: 'Paid',
     rating: null,
     downloads: '10K+',
@@ -122,6 +130,7 @@ export const apps: AppEntry[] = [
     name: 'Droplet Icon Pack',
     pkg: 'com.kdpixels.iconpacks.crystalorb2',
     kind: 'pack',
+    series: 'glass',
     price: 'Paid',
     rating: null,
     downloads: '10K+',
@@ -136,6 +145,7 @@ export const apps: AppEntry[] = [
     name: 'Bubble Icon Mask',
     pkg: 'com.kdpixels.iconpacks.bubble',
     kind: 'mask',
+    series: 'glass',
     price: 'Paid',
     rating: null,
     downloads: '10K+',
@@ -150,6 +160,7 @@ export const apps: AppEntry[] = [
     name: 'Moonlight Icon Mask',
     pkg: 'com.kdpixels.iconpacks.moonlit',
     kind: 'mask',
+    series: 'glass',
     price: 'Paid',
     rating: null,
     downloads: '10K+',
@@ -167,6 +178,19 @@ export const appCards = {
   playLink: (pkg: string) => `https://play.google.com/store/apps/details?id=${pkg}`,
 } as const;
 
+export const seriesMeta = {
+  monoic: {
+    label: 'Monoic Series',
+    blurb:
+      'Four packs, one monochrome design language — white and black, circle and squircle. Minimalism that reads on any wallpaper.',
+  },
+  glass: {
+    label: 'Glass Series',
+    blurb:
+      'Frosted, liquid and crystal — glassmorphism packs and masks that let your wallpaper glow through.',
+  },
+} as const;
+
 export function playLink(pkg: string) {
   return `https://play.google.com/store/apps/details?id=${pkg}`;
 }
@@ -178,7 +202,7 @@ export function getApp(slug: string): AppEntry | undefined {
 /** Sibling apps in the same family (or all remaining packs), for cross-promo */
 export function relatedApps(current: AppEntry, n = 3): AppEntry[] {
   const pool = apps.filter((a) => a.slug !== current.slug);
-  const same = current.family ? pool.filter((a) => a.family === current.family) : [];
+  const same = pool.filter((a) => a.series === current.series);
   const rest = pool.filter((a) => !(current.family && a.family === current.family));
   return [...same, ...rest].slice(0, n);
 }
