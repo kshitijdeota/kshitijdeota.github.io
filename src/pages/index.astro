@@ -3,10 +3,17 @@ import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
 import { apps, playLink } from '../data/apps';
 import { work } from '../data/work';
+import { totalInstalls, metricFor, metricsAsOf } from '../data/metrics';
 import { p } from '../utils/base';
 
 const highlight = apps.slice(0, 6); // top catalogue on the home rail
 const featuredWork = work.slice(0, 3);
+
+// live aggregates (null until the nightly ingest has run)
+const total = totalInstalls(apps.map((a) => a.pkg));
+const statsAsOf = metricsAsOf()
+  ? new Date(metricsAsOf()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  : null;
 
 const jsonld = [
   {
@@ -46,7 +53,10 @@ const jsonld = [
 
       <div class="stat-row" style="margin-top: 3rem">
         <div class="stat"><div class="value">9</div><div class="label">Apps on Google Play</div></div>
-        <div class="stat"><div class="value">1M+</div><div class="label">Monoic downloads</div></div>
+        <div class="stat">
+          <div class="value">{total ? `${(total / 1_000_000).toFixed(1)}M` : '1M+'}</div>
+          <div class="label">Installs · all packs{total && statsAsOf ? ` · ${statsAsOf}` : ''}</div>
+        </div>
         <div class="stat"><div class="value">14,000+</div><div class="label">Icons in flagship pack</div></div>
         <div class="stat"><div class="value">4.5★</div><div class="label">Highest-rated (Glassy)</div></div>
       </div>

@@ -10,10 +10,12 @@
     "preview": "astro preview",
     "astro": "astro",
     "sync": "bash scripts/dev-sync.sh",
-    "deploy-test": "bash scripts/build-deploy.sh"
+    "deploy-test": "bash scripts/build-deploy.sh",
+    "metrics": "node scripts/pull-metrics.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.6.0",
+    "@google-cloud/storage": "^8.4.0",
     "astro": "^5.14.0"
   }
 }

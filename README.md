@@ -40,6 +40,25 @@ src/
 public/     favicon set, images (all assets from the old Jekyll site minus notebook)
 ```
 
+## Play Store statistics pipeline
+
+`npm run metrics` pulls cumulative installs + ratings for all 9 apps from
+Google's private reports GCS bucket (`pubsite_prod_rev_…`, the documented
+programmatic route — no scraping) and writes `src/data/metrics.json`.
+Pages overlay these live figures (falling back to curated bands in `apps.ts`
+while metrics.json is still an empty stub).
+
+One-time setup (user-side):
+
+1. Cloud Console → create a service account → Keys → add JSON key
+2. Play Console → Users & permissions → invite the SA's client_email with
+   **View app information** (all apps)
+3. Locally: `KDPX_SA_KEY=/path/key.json npm run metrics`
+4. CI: repo secret `KDPX_PLAY_SA_JSON` = key JSON → `.github/workflows/play-stats.yml`
+   runs nightly 03:00 IST
+
+Data is daily-dated (Google's own lag ~24–48h); pages stamp "as of <date>".
+
 Discarded legacy: the entire Jekyll codebase (pages/posts/data/includes/sass) —
 recoverable from git history (tag `pre-astro` in the log) if ever needed.
 

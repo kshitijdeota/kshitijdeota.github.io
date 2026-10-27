@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { apps, playLink, relatedApps } from '../../data/apps';
+import { metricFor, metricsAsOf } from '../../data/metrics';
 import { p } from '../../utils/base';
 
 export function getStaticPaths() {
@@ -10,6 +11,9 @@ export function getStaticPaths() {
 const { app } = Astro.props;
 const related = relatedApps(app);
 const playUrl = playLink(app.pkg);
+const m = metricFor(app.pkg);
+const installsLabel = m?.installs != null ? `${m.installs.toLocaleString('en-US')} installs` : `${app.downloads} installs`;
+const asOf = metricsAsOf() ? new Date(metricsAsOf()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
 
 const jsonld = {
   '@context': 'https://schema.org',
@@ -20,8 +24,13 @@ const jsonld = {
   description: app.description,
   url: `https://kdpixels.com/apps/${app.slug}/`,
   installUrl: playUrl,
-  ...(app.rating && {
-    aggregateRating: { '@type': 'AggregateRating', ratingValue: app.rating, bestRating: 5 },
+  ...(m?.rating != null && {
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: m.rating,
+      bestRating: 5,
+      ...(m.ratingCount != null && { ratingCount: m.ratingCount }),
+    },
   }),
 };
 ---
@@ -34,11 +43,16 @@ const jsonld = {
         <h1 style="margin-top: 0.75rem">{app.name}</h1>
         <p class="lead">{app.tagline}</p>
         <div class="badges" style="margin-top: 1.25rem">
-          {app.rating && <span class="badge highlight">★ {app.rating} on Google Play</span>}
-          <span class="badge">{app.downloads} installs</span>
+          <span class="badge highlight">★ {m?.rating ?? app.rating ?? '—'} on Google Play</span>
+          <span class="badge">{installsLabel}</span>
           <span class="badge">{app.price}{app.priceNote ? ` · ${app.priceNote}` : ''}</span>
           {app.iconCount && <span class="badge">{app.iconCount.toLocaleString()}+ icons</span>}
         </div>
+        {asOf && (
+          <p class="dim" style="font-size: 0.78rem; margin-top: 0.5rem">
+            Live figures from Google Play reports · as of {asOf}
+          </p>
+        )}
         <div style="margin-top: 1.75rem; display:flex; gap: 1rem; flex-wrap: wrap">
           <a class="btn btn-primary" href={playUrl}>Get it on Google Play</a>
         </div>

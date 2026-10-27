@@ -14,6 +14,11 @@ yarn-debug.log*
 .env
 .env.production
 
+# service-account keys — never commit
+service-account.json
+*sa*.json
+*.pem
+
 # macOS
 .DS_Store
 

@@ -1,0 +1,50 @@
+# Nightly Play Store statistics ingest:
+#   GCS reports bucket (service account) → src/data/metrics.json → commit.
+# The site build overlays this on curated copy; deploy happens via the
+# normal Pages workflow when this lands on master.
+#
+# Secret required:  KDPX_PLAY_SA_JSON — full service-account key (JSON).
+# Play Console: the service account's email must be invited under
+# Users & permissions with "View app information" (all apps).
+
+name: play-stats
+
+on:
+  schedule:
+    - cron: '30 21 * * *' # 03:00 IST daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: play-stats
+  cancel-in-progress: true
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.KDPX_PLAY_SA_JSON }}
+
+      - run: npm run metrics
+
+      - name: Commit metrics
+        id: commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(metrics): nightly Play Store stats ingest'
+          file_pattern: src/data/metrics.json
+          commit_user_name: kdpixels-bot
+          commit_user_email: dev@kdpixels.com
