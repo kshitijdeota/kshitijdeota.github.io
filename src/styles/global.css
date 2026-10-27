@@ -161,12 +161,28 @@ h2 .accent { color: var(--accent); }
   gap: 0.55rem;
 }
 
-.logo .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
+/* The KD mark (decade-old identity) — sits on a light chip so it reads
+   on both dark and light themes without recolouring the artwork. */
+.logo-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: grid;
+  place-items: center;
   flex: none;
+}
+
+[data-theme='light'] .logo-mark {
+  background: var(--bg-raise);
+  border-color: var(--border);
+}
+
+.logo-mark img {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
 .nav {

@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { apps, playLink, relatedApps } from '../../data/apps';
+import { apps, playLink, relatedApps, priceLabel } from '../../data/apps';
 import { metricFor, metricsAsOf } from '../../data/metrics';
 import { p } from '../../utils/base';
 
@@ -45,9 +45,18 @@ const jsonld = {
         <div class="badges" style="margin-top: 1.25rem">
           <span class="badge highlight">★ {m?.rating ?? app.rating ?? '—'} on Google Play</span>
           <span class="badge">{installsLabel}</span>
-          <span class="badge">{app.price}{app.priceNote ? ` · ${app.priceNote}` : ''}</span>
+          <span class="badge">{priceLabel(app)}</span>
           {app.iconCount && <span class="badge">{app.iconCount.toLocaleString()}+ icons</span>}
         </div>
+        {app.price === 'Paid' ? (
+          <p class="dim" style="font-size: 0.78rem; margin-top: 0.5rem">
+            One-time purchase — Google Play shows the price in your local currency.
+          </p>
+        ) : (
+          <p class="dim" style="font-size: 0.78rem; margin-top: 0.5rem">
+            Free download — optional in-app purchases unlock the full catalogue.
+          </p>
+        )}
         {asOf && (
           <p class="dim" style="font-size: 0.78rem; margin-top: 0.5rem">
             Live figures from Google Play reports · as of {asOf}
@@ -115,7 +124,7 @@ const jsonld = {
               <div class="title">{r.name}</div>
               <div class="badges">
                 {r.rating && <span class="badge highlight">★ {r.rating}</span>}
-                <span class="badge">{r.priceNote ?? 'Free'}</span>
+                <span class="badge">{priceLabel(r)}</span>
               </div>
             </div>
           </a>

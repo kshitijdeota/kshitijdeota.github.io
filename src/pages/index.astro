@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
 import { apps, playLink } from '../data/apps';
+import { priceLabel } from '../data/apps';
 import { work } from '../data/work';
 import { totalInstalls, metricFor, metricsAsOf } from '../data/metrics';
 import { p } from '../utils/base';
@@ -83,7 +84,7 @@ const jsonld = [
               <div class="badges">
                 {app.rating && <span class="badge highlight">★ {app.rating}</span>}
                 <span class="badge">{app.downloads}</span>
-                <span class="badge">{app.priceNote ?? 'Free'}</span>
+                <span class="badge">{priceLabel(app)}</span>
               </div>
             </div>
           </a>

@@ -16,8 +16,6 @@ export interface AppEntry {
   /** For Monoic variants — groups cross-promotion links */
   family?: 'monoic';
   price: 'Free · in-app purchase' | 'Paid';
-  /** Retail price string as shown on Play (INR storefront shown) */
-  priceNote?: string;
   rating: number | null; // null = unrated / too few reviews
   downloads: string; // Play download band
   tagline: string;
@@ -97,7 +95,6 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.glassy',
     kind: 'pack',
     price: 'Paid',
-    priceNote: '₹400',
     rating: 4.5,
     downloads: '50K+',
     tagline: 'A frosted-glass icon pack with matching wallpapers and widgets.',
@@ -112,7 +109,6 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.waves',
     kind: 'pack',
     price: 'Paid',
-    priceNote: '₹400',
     rating: null,
     downloads: '10K+',
     tagline: 'Glassmorphism with a flowing, liquid twist.',
@@ -127,7 +123,6 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.crystalorb2',
     kind: 'pack',
     price: 'Paid',
-    priceNote: '₹400',
     rating: null,
     downloads: '10K+',
     tagline: 'Crystal orbs — liquid glass droplets for your home screen.',
@@ -142,7 +137,6 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.bubble',
     kind: 'mask',
     price: 'Paid',
-    priceNote: '₹400',
     rating: null,
     downloads: '10K+',
     tagline: 'A bubble shape mask that themes every app icon automatically.',
@@ -157,7 +151,6 @@ export const apps: AppEntry[] = [
     pkg: 'com.kdpixels.iconpacks.moonlit',
     kind: 'mask',
     price: 'Paid',
-    priceNote: '₹400',
     rating: null,
     downloads: '10K+',
     tagline: 'A soft crescent-light mask for icon shapes that glow.',
@@ -188,4 +181,10 @@ export function relatedApps(current: AppEntry, n = 3): AppEntry[] {
   const same = current.family ? pool.filter((a) => a.family === current.family) : [];
   const rest = pool.filter((a) => !(current.family && a.family === current.family));
   return [...same, ...rest].slice(0, n);
+}
+
+/** Display label — actual price is localized by Google Play at checkout,
+ *  so the site never shows a hard currency (no INR/USD confusion). */
+export function priceLabel(app: AppEntry): string {
+  return app.price === 'Paid' ? 'One-time purchase' : 'Free';
 }

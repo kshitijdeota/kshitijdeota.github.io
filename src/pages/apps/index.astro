@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { apps } from '../../data/apps';
+import { priceLabel } from '../../data/apps';
 import { site } from '../../data/site';
 import { p } from '../../utils/base';
 
@@ -47,7 +48,7 @@ const masks = apps.filter((a) => a.kind === 'mask');
               <div class="badges">
                 {app.rating && <span class="badge highlight">★ {app.rating}</span>}
                 <span class="badge">{app.downloads}</span>
-                <span class="badge">{app.priceNote ?? 'Free'}</span>
+                <span class="badge">{priceLabel(app)}</span>
               </div>
             </div>
           </a>
@@ -70,7 +71,7 @@ const masks = apps.filter((a) => a.kind === 'mask');
               <p>{app.tagline}</p>
               <div class="badges">
                 <span class="badge">{app.downloads}</span>
-                <span class="badge">{app.priceNote ?? 'Free'}</span>
+                <span class="badge">{priceLabel(app)}</span>
               </div>
             </div>
           </a>
