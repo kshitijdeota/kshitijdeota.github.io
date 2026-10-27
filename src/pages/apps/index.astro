@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { apps } from '../../data/apps';
 import { priceLabel } from '../../data/apps';
 import { site } from '../../data/site';
+import { upcoming } from '../../data/upcoming';
 import { p } from '../../utils/base';
 
 const jsonld = {
@@ -75,6 +76,26 @@ const masks = apps.filter((a) => a.kind === 'mask');
               </div>
             </div>
           </a>
+        ))}
+      </div>
+      <h2 style="margin-top: 3.5rem" id="upcoming">In development</h2>
+      <p class="dim" style="max-width: 50ch">
+        On the bench right now — this catalogue grows next.
+      </p>
+      <div class="card-grid" style="margin-top: 1.5rem">
+        {upcoming.map((u) => (
+          <div class="card">
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${u.hue} 35% 16%), hsl(${u.hue} 45% 8%))`}>
+              <div class="tile">{u.family === 'monoic' ? '◐' : '◆'}</div>
+            </div>
+            <div class="card-body">
+              <div class="badges" style="margin-bottom: 0.6rem">
+                <span class="badge highlight">{u.status}</span>
+              </div>
+              <div class="title">{u.name}</div>
+              <p>{u.tagline}</p>
+            </div>
+          </div>
         ))}
       </div>
     </div>

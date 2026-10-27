@@ -3,9 +3,9 @@
  */
 export const site = {
   name: 'KD Pixels',
-  title: 'KD Pixels — Icon packs & digital experiences for Android',
+  title: 'KD Pixels — Android apps: icon packs, widgets & masks',
   description:
-    'Crafting thoughtful apps, icons & digital experiences — where design meets technology. Premium Android icon packs on Google Play, UI design and front-end development for individuals & businesses.',
+    'Independent Android apps studio. Premium icon packs and masks on Google Play, a Monoic widget family in the works, and UI design & front-end development for individuals & businesses.',
   author: 'Kshitij Deota',
   email: 'dev@kdpixels.com',
   url: 'https://kdpixels.com',
@@ -27,7 +27,6 @@ export const site = {
 
 export const nav = [
   { label: 'Apps', href: '/apps/' },
-  { label: 'Work', href: '/work/' },
   { label: 'About', href: '/about/' },
   { label: 'Contact', href: '/contact/' },
 ] as const;

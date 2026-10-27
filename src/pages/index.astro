@@ -1,20 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
-import { apps, playLink } from '../data/apps';
-import { priceLabel } from '../data/apps';
-import { work } from '../data/work';
-import { totalInstalls, metricFor, metricsAsOf } from '../data/metrics';
+import { apps } from '../data/apps';
+import { upcoming } from '../data/upcoming';
+import { totalInstalls, metricsAsOf } from '../data/metrics';
 import { p } from '../utils/base';
-
-const highlight = apps.slice(0, 6); // top catalogue on the home rail
-const featuredWork = work.slice(0, 3);
-
-// live aggregates (null until the nightly ingest has run)
-const total = totalInstalls(apps.map((a) => a.pkg));
-const statsAsOf = metricsAsOf()
-  ? new Date(metricsAsOf()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  : null;
 
 const jsonld = [
   {
@@ -22,7 +12,7 @@ const jsonld = [
     '@type': 'Organization',
     name: site.name,
     url: site.url,
-    description: 'Independent studio crafting Android icon packs, UI design and front-end development.',
+    description: 'Independent Android apps studio — premium icon packs, masks and widgets.',
     founder: { '@type': 'Person', name: site.author },
     sameAs: site.socials.map((s) => s.href),
   },
@@ -33,30 +23,37 @@ const jsonld = [
     url: site.url,
   },
 ];
+
+// live aggregates (null until the nightly ingest has run)
+const total = totalInstalls(apps.map((a) => a.pkg));
+const statsAsOf = metricsAsOf()
+  ? new Date(metricsAsOf()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  : null;
 ---
 
 <Base jsonld={jsonld}>
   <!-- Hero -->
   <section class="section" style="padding-block-start: clamp(4rem, 12vw, 7rem)">
     <div class="container">
-      <span class="eyebrow">Android · Iconography · Front-end</span>
+      <span class="eyebrow">Android · Icon packs · Widgets · Masks</span>
       <h1>
-        Icon packs that make Android <span class="accent">feel crafted</span>.
+        Android apps that make your phone <span class="accent">feel crafted</span>.
       </h1>
       <p class="lead">
-        KD Pixels is an independent studio — premium icon packs on Google Play,
-        UI design, and front-end development for individuals &amp; businesses.
+        KD Pixels is an independent Android apps studio. Nine packs and masks live on
+        Google Play today, a Monoic widget family and a brand-new icon project are on
+        the bench — and UI design & front-end development round out the practice.
       </p>
       <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top: 2rem">
-        <a class="btn btn-primary" href={p('/apps/')}>Browse the catalogue</a>
-        <a class="btn btn-ghost" href={p('/work/')}>See what we've shipped</a>
+        <a class="btn btn-primary" href={p('/apps/')}>Browse the apps</a>
+        <a class="btn btn-ghost" href={p('/#upcoming')}>What's coming next</a>
       </div>
 
       <div class="stat-row" style="margin-top: 3rem">
         <div class="stat"><div class="value">9</div><div class="label">Apps on Google Play</div></div>
         <div class="stat">
           <div class="value">{total ? `${(total / 1_000_000).toFixed(1)}M` : '1M+'}</div>
-          <div class="label">Installs · all packs{total && statsAsOf ? ` · ${statsAsOf}` : ''}</div>
+          <div class="label">Installs · all apps{total && statsAsOf ? ` · ${statsAsOf}` : ''}</div>
         </div>
         <div class="stat"><div class="value">14,000+</div><div class="label">Icons in flagship pack</div></div>
         <div class="stat"><div class="value">4.5★</div><div class="label">Highest-rated (Glassy)</div></div>
@@ -64,55 +61,53 @@ const jsonld = [
     </div>
   </section>
 
-  <!-- Apps rail -->
+  <!-- Full catalogue -->
   <section class="section">
     <div class="container">
       <h2>The catalogue</h2>
       <p class="dim" style="max-width: 52ch">
-        Nine packs, one design universe — monocolor minimalism to liquid glass.
+        Nine apps, one design universe — monocolor minimalism to liquid glass.
         Every pack works with the launchers you actually use.
       </p>
       <div class="card-grid" style="margin-top: 2rem">
-        {highlight.map((app) => (
+        {apps.map((app) => (
           <a class="card" href={p(`/apps/${app.slug}/`)}>
-            <div class="app-art" style={`background: radical-gradient(...); background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
-              <div class="tile">◐</div>
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+              <div class="tile">{app.kind === 'mask' ? '◑' : '◐'}</div>
             </div>
             <div class="card-body">
               <div class="title">{app.name}</div>
               <p>{app.tagline}</p>
-              <div class="badges">
-                {app.rating && <span class="badge highlight">★ {app.rating}</span>}
-                <span class="badge">{app.downloads}</span>
-                <span class="badge">{priceLabel(app)}</span>
-              </div>
             </div>
           </a>
         ))}
-      </div>
-      <div style="margin-top: 2.5rem">
-        <a class="btn btn-ghost" href="/apps/">All nine packs →</a>
       </div>
     </div>
   </section>
 
-  <!-- Work rail -->
-  <section class="section">
+  <!-- Upcoming -->
+  <section class="section" id="upcoming">
     <div class="container">
-      <h2>Selected work</h2>
-      <div class="card-grid" style="margin-top: 2rem">
-        {featuredWork.map((w) => (
-          <a class="card" href={p(`/work/${w.slug}/`)}>
-            <div class="work-art"><img src={p(w.featured)} alt={w.title} loading="lazy" /></div>
-            <div class="card-body">
-              <div class="title">{w.title}</div>
-              <p>{w.meta}</p>
+      <span class="eyebrow">In the workshop</span>
+      <h2>Coming soon</h2>
+      <p class="dim" style="max-width: 52ch">
+        Two projects on the bench right now — built in the open, shipped when they're ready.
+      </p>
+      <div class="card-grid" style="margin-top: 1.5rem">
+        {upcoming.map((u) => (
+          <div class="card">
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${u.hue} 35% 16%), hsl(${u.hue} 45% 8%))`}>
+              <div class="tile">{u.family === 'monoic' ? '◐' : '◆'}</div>
             </div>
-          </a>
+            <div class="card-body">
+              <div class="badges" style="margin-bottom: 0.6rem">
+                <span class="badge highlight">{u.status}</span>
+              </div>
+              <div class="title">{u.name}</div>
+              <p>{u.tagline}</p>
+            </div>
+          </div>
         ))}
-      </div>
-      <div style="margin-top: 2.5rem">
-        <a class="btn btn-ghost" href="/work/">Full portfolio →</a>
       </div>
     </div>
   </section>
@@ -120,16 +115,16 @@ const jsonld = [
   <!-- Services teaser -->
   <section class="section">
     <div class="container">
-      <span class="eyebrow">For businesses &amp; individuals</span>
+      <span class="eyebrow">For businesses & individuals</span>
       <h2>Need this kind of craft on your project?</h2>
       <div class="card-grid" style="margin-top: 1.5rem">
         <div class="card"><div class="card-body">
-          <h3>Icon packs &amp; iconography</h3>
-          <p class="dim">Custom packs for launchers, apps and brands — designed, built and Play-ready.</p>
+          <h3>Icon packs, widgets & theming</h3>
+          <p class="dim">Custom packs, widget families and launcher theming — designed, built and Play-ready.</p>
         </div></div>
         <div class="card"><div class="card-body">
-          <h3>UI design</h3>
-          <p class="dim">Interfaces for web and mobile that respect users, and designers' own standards.</p>
+          <h3>App UI design</h3>
+          <p class="dim">Interfaces for Android and web that respect users, and designers' own standards.</p>
         </div></div>
         <div class="card"><div class="card-body">
           <h3>Jamstack websites</h3>
@@ -137,7 +132,7 @@ const jsonld = [
         </div></div>
       </div>
       <div style="margin-top: 2.5rem; display:flex; gap: 1rem; flex-wrap: wrap">
-        <a class="btn btn-primary" href="/contact/">Start a conversation</a>
+        <a class="btn btn-primary" href={p('/contact/')}>Start a conversation</a>
         <span class="dim" style="align-self:center">Also on <a href="https://www.upwork.com/freelancers/~0105bd4ff0fc9474a8" style="text-decoration: underline">Upwork</a></span>
       </div>
     </div>

@@ -188,9 +188,13 @@ async function main() {
       }
     }
 
-    // ---- ratings ----
-    const rNames = names.filter((n) => `stats/ratings/`.length && n.startsWith('stats/ratings/'));
-    const rateName = pickLatest(rNames, pkg, monthLabels);
+    // ---- ratings (global) ----
+    const rNames = names.filter((n) => n.startsWith('stats/ratings/'));
+    const rateName = pickLatest(
+      rNames.filter((n) => !n.endsWith('_country.csv')),
+      pkg,
+      monthLabels
+    );
     if (rateName) {
       const [buf] = await bucket.file(rateName).download();
       const { headers, rows } = parseCsvText(decodeCsv(buf));
@@ -198,13 +202,38 @@ async function main() {
         const last = rows[rows.length - 1];
         const aCol = findCol(headers, [/^total average rating/i, /^rating$/i]);
         const cCol = findCol(headers, [/total number of ratings/i, /number of ratings/i, /total (5\*)? ?ratings/i]);
-        if (aCol >= 0) entry.rating = num(last[aCol]);
+        if (aCol >= 0) entry.ratingGlobal = num(last[aCol]);
         if (cCol >= 0) entry.ratingCount = num(last[cCol]);
       }
     }
 
+    // ---- ratings by country — headline = US, secondary = JP
+    //      (audience is ~0.1% India; owner wants US/JP framing, never IN) ----
+    const rateCountryName = pickLatest(
+      rNames.filter((n) => n.endsWith('_country.csv')),
+      pkg,
+      monthLabels
+    );
+    if (rateCountryName) {
+      const [buf] = await bucket.file(rateCountryName).download();
+      const { headers, rows } = parseCsvText(decodeCsv(buf));
+      const cIdx = headers.findIndex((h) => /country/i.test(h));
+      const aIdx = findCol(headers, [/^total average rating/i, /^rating$/i]);
+      if (cIdx >= 0 && aIdx >= 0) {
+        const latest = new Map(); // country -> latest row (files are date-sorted)
+        for (const r of rows) latest.set(r[cIdx], r);
+        for (const [code, row] of latest) {
+          if (/^(US|United States)$/i.test(code)) entry.ratingUS = num(row[aIdx]);
+          if (/^(JP|Japan)$/i.test(code)) entry.ratingJP = num(row[aIdx]);
+        }
+      }
+    }
+
     result.apps[pkg] = entry;
-    const label = [entry.installs ?? '—', entry.rating != null ? `★${entry.rating}` : '★—'].join('  ');
+    const label = [
+      entry.installs ?? '—',
+      `★${entry.ratingUS ?? entry.ratingGlobal ?? '—'}${entry.ratingUS ? ' (US)' : ''}`,
+    ].join('  ');
     console.log(`${pkg.padEnd(38)} ${label}`);
   }
 

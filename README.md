@@ -33,9 +33,9 @@ apache: untouched — static test reuses the existing /var/www/dev docroot
 
 ```
 src/
-  data/     apps.ts (Play catalogue), work.ts (portfolio), site.ts (identity), wallpapers.json
+  data/     apps.ts (Play catalogue), upcoming.ts (Monoic Widgets, BB Icons), site.ts (identity), wallpapers.json
   layouts/  Base.astro (head/SEO, header, footer, theme toggle)
-  pages/    index, apps/*, work/*, about, contact, 404
+  pages/    index, apps/*, about, contact, 404
   styles/   global.css (design tokens + components)
 public/     favicon set, images (all assets from the old Jekyll site minus notebook)
 ```

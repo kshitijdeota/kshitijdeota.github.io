@@ -3,13 +3,18 @@
  *
  * Falls back to null when the file is still a stub (no run yet) so the pages
  * keep rendering with the curated static figures from apps.ts.
+ *
+ * Ratings convention (owner decision): the audience is ~0.1% India — the
+ * site shows US-market ratings first, Japan second, global as last resort.
  */
 
 import raw from './metrics.json';
 
 export interface Metric {
   installs: number | null;
-  rating: number | null;
+  ratingUS: number | null;
+  ratingJP: number | null;
+  ratingGlobal: number | null;
   ratingCount: number | null;
   statsDate: string | null;
 }
@@ -46,4 +51,10 @@ export function totalInstalls(packages: string[]): number | null {
     if (typeof m?.installs === 'number') { sum += m.installs; any = true; }
   }
   return any ? sum : null;
+}
+
+/** Headline rating: US → JP → global → curated fallback */
+export function headlineRating(m: Metric | null, fallback: number | null): number | null {
+  const live = m ? m.ratingUS ?? m.ratingJP ?? m.ratingGlobal : null;
+  return live ?? fallback;
 }
