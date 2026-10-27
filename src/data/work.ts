@@ -49,13 +49,14 @@ export const work: WorkEntry[] = [
     meta: 'Brand identity · Agency',
   },
   {
-    slug: 'creamsmith-bakers',
-    title: 'Creamsmith Bakers',
+    slug: '10-pounder-pizzateria',
+    title: '10 Pounder Pizzateria',
     category: 'brand-identity',
     year: 2019,
-    featured: '/images/featured/creamsmith.png',
-    excerpt: 'Identity and packaging-flavoured design for a confectionery/bakery brand — warm, appetising, and shelf-distinct.',
-    meta: 'Brand identity · F&B',
+    featured: '/images/featured/10pounder.png',
+    excerpt:
+      'Identity and packaging design for a pizzeria — a weighty, appetite-forward mark system built to hold its own on boxes, menus and storefronts.',
+    meta: 'Brand identity · Packaging',
   },
   {
     slug: 'cook-in-a-pan',
@@ -74,6 +75,36 @@ export const work: WorkEntry[] = [
     featured: '/images/featured/knowledge-factory.png',
     excerpt: 'Identity design for an education-first venture — geometric mark and a full study-friendly visual system.',
     meta: 'Brand identity · Education',
+  },
+  {
+    slug: 'audio-logix',
+    title: 'Audio Logix',
+    category: 'brand-identity',
+    year: 2019,
+    featured: '/images/featured/audio-logix.png',
+    excerpt:
+      'A full identity build for an audio venture — mark, type and a sound-tech-appropriate visual language that stays crisp from favicon to banner.',
+    meta: 'Brand identity · Audio',
+  },
+  {
+    slug: 'travel-penn',
+    title: 'Travel Penn',
+    category: 'brand-identity',
+    year: 2019,
+    featured: '/images/featured/travel-penn.png',
+    excerpt:
+      'Identity plus web design for a travel brand — a mark built for itineraries, tickets and the open road, carried through to the site.',
+    meta: 'Brand identity · Web design',
+  },
+  {
+    slug: 'caufmann-estate',
+    title: 'Caufmann Estate',
+    category: 'web-app',
+    year: 2019,
+    featured: '/images/featured/caufmann.png',
+    excerpt:
+      'Estate & vineyards — identity and web design with a heritage register: serif-led, wine-label-grade detailing across print and screen.',
+    meta: 'Brand identity · Web design',
   },
 ];
 
