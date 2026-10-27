@@ -1,0 +1,52 @@
+---
+import Base from '../../layouts/Base.astro';
+import { work, categoryLabel } from '../../data/work';
+import { p } from '../../utils/base';
+
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Selected work — KD Pixels',
+  hasPart: work.map((w) => ({
+    '@type': 'CreativeWorkSeries',
+    name: w.title,
+    url: `https://kdpixels.com/work/${w.slug}/`,
+  })),
+};
+---
+
+<Base title="Work — selected projects" jsonld={jsonld}>
+  <div class="page-head">
+    <div class="container">
+      <span class="eyebrow">Portfolio</span>
+      <h1>Selected work</h1>
+      <p class="lead">
+        A curated cut, not an archive: the icon systems that built this studio,
+        and the brand-identity work that sharpened the eye.
+      </p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="card-grid">
+        {work.map((w) => (
+          <a class="card" href={p(`/work/${w.slug}/`)}>
+            <div class="work-art"><img src={p(w.featured)} alt={w.title} loading="lazy" /></div>
+            <div class="card-body">
+              <div class="badges" style="margin-bottom: 0.6rem">
+                <span class="badge">{categoryLabel[w.category]}</span>
+                <span class="badge">{w.year}</span>
+              </div>
+              <div class="title">{w.title}</div>
+              <p>{w.excerpt}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+      <p class="dim" style="margin-top: 2rem; font-size: 0.9rem">
+        Full case studies with process notes are being restored from the archives — ask for the complete deck any time.
+      </p>
+    </div>
+  </section>
+</Base>

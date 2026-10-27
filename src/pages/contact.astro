@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { p } from '../utils/base';
+
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  url: 'https://kdpixels.com/contact/',
+};
+---
+
+<Base title="Contact" jsonld={jsonld}>
+  <div class="page-head">
+    <div class="container" style="max-width: 700px">
+      <span class="eyebrow">Contact</span>
+      <h1>Let's talk</h1>
+      <p class="lead">
+        Project quotes, icon pack support, or anything related to site — one email away.
+      </p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" style="max-width: 700px">
+      <div class="card">
+        <div class="card-body" style="padding: 2rem">
+          <h2 style="font-size: 1.2rem">Email</h2>
+          <p class="dim">Best for projects, press or app support:</p>
+          <p style="font-size: 1.25rem; font-weight: 600">
+            <a href={`mailto:${site.email}`} style="color: var(--accent)">{site.email}</a>
+          </p>
+
+          <h2 style="font-size: 1.2rem; margin-top: 2rem">Freelance on Upwork</h2>
+          <p class="dim">Hourly or fixed contracts with escrow protection:</p>
+          <a class="btn btn-ghost" style="margin-top: 0.5rem" href="https://www.upwork.com/freelancers/~0105bd4ff0fc9474a8">
+            View profile on Upwork
+          </a>
+
+          <h2 style="font-size: 1.2rem; margin-top: 2rem">Social</h2>
+          <div class="social-links" style="margin-top: 0.5rem">
+            {site.socials.map((s) => <a class="badge" href={s.href} rel="me noopener">{s.label}</a>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

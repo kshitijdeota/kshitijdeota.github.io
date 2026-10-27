@@ -1,0 +1,81 @@
+---
+import Base from '../../layouts/Base.astro';
+import { apps } from '../../data/apps';
+import { site } from '../../data/site';
+import { p } from '../../utils/base';
+
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${site.name} apps on Google Play`,
+  itemListElement: apps.map((app, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: app.name,
+    url: `https://kdpixels.com/apps/${app.slug}/`,
+  })),
+};
+
+const packs = apps.filter((a) => a.kind === 'pack');
+const masks = apps.filter((a) => a.kind === 'mask');
+---
+
+<Base title="Apps — Android icon packs on Google Play" jsonld={jsonld}>
+  <div class="page-head">
+    <div class="container">
+      <span class="eyebrow">Catalogue</span>
+      <h1>Icon packs &amp; masks for Android</h1>
+      <p class="lead">
+        Every design below is live on Google Play under the same developer name —
+        built around real launchers, real icon coverage, and steady updates.
+      </p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <h2>Icon packs</h2>
+      <div class="card-grid" style="margin-top: 1.5rem">
+        {packs.map((app) => (
+          <a class="card" href={p(`/apps/${app.slug}/`)}>
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+              <div class="tile">◐</div>
+            </div>
+            <div class="card-body">
+              <div class="title">{app.name}</div>
+              <p>{app.tagline}</p>
+              <div class="badges">
+                {app.rating && <span class="badge highlight">★ {app.rating}</span>}
+                <span class="badge">{app.downloads}</span>
+                <span class="badge">{app.priceNote ?? 'Free'}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <h2 style="margin-top: 3.5rem">Icon masks</h2>
+      <p class="dim" style="max-width: 50ch">
+        Masks theme every app on your launcher automatically — one consistent shape,
+        zero per-app swapping.
+      </p>
+      <div class="card-grid" style="margin-top: 1.5rem">
+        {masks.map((app) => (
+          <a class="card" href={p(`/apps/${app.slug}/`)}>
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+              <div class="tile">◑</div>
+            </div>
+            <div class="card-body">
+              <div class="title">{app.name}</div>
+              <p>{app.tagline}</p>
+              <div class="badges">
+                <span class="badge">{app.downloads}</span>
+                <span class="badge">{app.priceNote ?? 'Free'}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

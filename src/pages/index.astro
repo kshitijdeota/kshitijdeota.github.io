@@ -1,0 +1,134 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { apps, playLink } from '../data/apps';
+import { work } from '../data/work';
+import { p } from '../utils/base';
+
+const highlight = apps.slice(0, 6); // top catalogue on the home rail
+const featuredWork = work.slice(0, 3);
+
+const jsonld = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: site.name,
+    url: site.url,
+    description: 'Independent studio crafting Android icon packs, UI design and front-end development.',
+    founder: { '@type': 'Person', name: site.author },
+    sameAs: site.socials.map((s) => s.href),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.url,
+  },
+];
+---
+
+<Base jsonld={jsonld}>
+  <!-- Hero -->
+  <section class="section" style="padding-block-start: clamp(4rem, 12vw, 7rem)">
+    <div class="container">
+      <span class="eyebrow">Android · Iconography · Front-end</span>
+      <h1>
+        Icon packs that make Android <span class="accent">feel crafted</span>.
+      </h1>
+      <p class="lead">
+        KD Pixels is an independent studio — premium icon packs on Google Play,
+        UI design, and front-end development for individuals &amp; businesses.
+      </p>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top: 2rem">
+        <a class="btn btn-primary" href={p('/apps/')}>Browse the catalogue</a>
+        <a class="btn btn-ghost" href={p('/work/')}>See what we've shipped</a>
+      </div>
+
+      <div class="stat-row" style="margin-top: 3rem">
+        <div class="stat"><div class="value">9</div><div class="label">Apps on Google Play</div></div>
+        <div class="stat"><div class="value">1M+</div><div class="label">Monoic downloads</div></div>
+        <div class="stat"><div class="value">14,000+</div><div class="label">Icons in flagship pack</div></div>
+        <div class="stat"><div class="value">4.5★</div><div class="label">Highest-rated (Glassy)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Apps rail -->
+  <section class="section">
+    <div class="container">
+      <h2>The catalogue</h2>
+      <p class="dim" style="max-width: 52ch">
+        Nine packs, one design universe — monocolor minimalism to liquid glass.
+        Every pack works with the launchers you actually use.
+      </p>
+      <div class="card-grid" style="margin-top: 2rem">
+        {highlight.map((app) => (
+          <a class="card" href={p(`/apps/${app.slug}/`)}>
+            <div class="app-art" style={`background: radical-gradient(...); background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+              <div class="tile">◐</div>
+            </div>
+            <div class="card-body">
+              <div class="title">{app.name}</div>
+              <p>{app.tagline}</p>
+              <div class="badges">
+                {app.rating && <span class="badge highlight">★ {app.rating}</span>}
+                <span class="badge">{app.downloads}</span>
+                <span class="badge">{app.priceNote ?? 'Free'}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div style="margin-top: 2.5rem">
+        <a class="btn btn-ghost" href="/apps/">All nine packs →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Work rail -->
+  <section class="section">
+    <div class="container">
+      <h2>Selected work</h2>
+      <div class="card-grid" style="margin-top: 2rem">
+        {featuredWork.map((w) => (
+          <a class="card" href={p(`/work/${w.slug}/`)}>
+            <div class="work-art"><img src={p(w.featured)} alt={w.title} loading="lazy" /></div>
+            <div class="card-body">
+              <div class="title">{w.title}</div>
+              <p>{w.meta}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div style="margin-top: 2.5rem">
+        <a class="btn btn-ghost" href="/work/">Full portfolio →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services teaser -->
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">For businesses &amp; individuals</span>
+      <h2>Need this kind of craft on your project?</h2>
+      <div class="card-grid" style="margin-top: 1.5rem">
+        <div class="card"><div class="card-body">
+          <h3>Icon packs &amp; iconography</h3>
+          <p class="dim">Custom packs for launchers, apps and brands — designed, built and Play-ready.</p>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <h3>UI design</h3>
+          <p class="dim">Interfaces for web and mobile that respect users, and designers' own standards.</p>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <h3>Jamstack websites</h3>
+          <p class="dim">Fast, maintainable static sites — design and build in one pair of hands.</p>
+        </div></div>
+      </div>
+      <div style="margin-top: 2.5rem; display:flex; gap: 1rem; flex-wrap: wrap">
+        <a class="btn btn-primary" href="/contact/">Start a conversation</a>
+        <span class="dim" style="align-self:center">Also on <a href="https://www.upwork.com/freelancers/~0105bd4ff0fc9474a8" style="text-decoration: underline">Upwork</a></span>
+      </div>
+    </div>
+  </section>
+</Base>

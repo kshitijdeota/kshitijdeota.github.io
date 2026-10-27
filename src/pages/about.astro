@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { p } from '../utils/base';
+
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.author,
+  url: site.url,
+  sameAs: site.socials.map((s) => s.href),
+  knowsAbout: ['Android', 'Icon design', 'UI Design', 'Front-end development', 'Jamstack'],
+};
+---
+
+<Base title="About" jsonld={jsonld}>
+  <div class="page-head">
+    <div class="container" style="max-width: 760px">
+      <span class="eyebrow">About</span>
+      <h1>Hi, I'm KD</h1>
+      <p class="lead">
+        Designer and developer. I make icon packs that million people have installed —
+        and I build tidy websites, web apps and design systems for the rest of my time.
+      </p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" style="max-width: 760px">
+      <div style="display:grid; grid-template-columns: auto minmax(0,1fr); gap: 1.5rem; align-items:start">
+        <img
+          src={p('/images/kshitij-deota.jpg')}
+          alt="Kshitij Deota (KD)"
+          style="width: 140px; border-radius: 16px; border: 1px solid var(--border)"
+        />
+        <div>
+          <p>
+            KD Pixels began as a graphic-design practice — brand identities, illustration and
+            everything visual — and grew into a fully-fledged Android customization studio when
+            <a href={p('/apps/monoic-white/')} style="color: var(--accent)">Monoic</a> crossed a million downloads.
+          </p>
+          <p class="dim" style="margin-top: 1rem">
+            Today the studio publishes nine apps on Google Play and takes on select
+            client projects: UI design, front-end and Jamstack builds that stay fast, stay maintainable,
+            and stay yours.
+          </p>
+        </div>
+      </div>
+
+      <h2 style="margin-top: 3rem">What I care about in a job</h2>
+      <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr))">
+        <div class="card"><div class="card-body"><h3>Straightforward</h3><p class="dim">Plain pricing, plain timelines, plain answers. No agency theatre.</p></div></div>
+        <div class="card"><div class="card-body"><h3>Crafted</h3><p class="dim">14,000 aligned icons taught me pixel discipline — it shows up in everything.</p></div></div>
+        <div class="card"><div class="card-body"><h3>Found in the wild</h3><p class="dim">The icon packs live on Google Play — shipped product, not portfolio mockups.</p></div></div>
+      </div>
+
+      <div style="margin-top: 2.5rem">
+        <a class="btn btn-primary" href="/contact/">Work with me</a>
+      </div>
+    </div>
+  </section>
+</Base>

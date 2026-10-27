@@ -1,0 +1,127 @@
+---
+import { site, nav } from '../data/site';
+import { playLink } from '../data/apps';
+import { p, strip } from '../utils/base';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** JSON-LD objects to emit on page-specific basis */
+  jsonld?: object | object[];
+}
+
+const { title, description = site.description, jsonld } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, site.url);
+
+const pageTitle = title
+  ? title.includes(site.name)
+    ? title
+    : `${title} — ${site.name}`
+  : site.title;
+
+const jsonldItems = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
+
+// inline theme boot script — avoids theme flash on load
+const themeBoot = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+})();
+`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={site.author} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/images/preview.jpg', site.url)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@kdpixels" />
+
+    <link rel="icon" href={p('/favicon.ico')} sizes="48x48" />
+    <link rel="icon" href={p('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={p('/apple-touch-icon.png')} />
+    <link rel="manifest" href={p('/site.webmanifest')} />
+    <meta name="theme-color" content="#0f0f12" />
+
+    {jsonldItems.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
+
+    <script is:inline set:html={themeBoot} />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container inner">
+        <a class="logo" href={p('/')} aria-label="KD Pixels — home">
+          <span class="dot"></span>
+          <span>KD Pixels</span>
+        </a>
+        <nav class="nav" aria-label="Main">
+          {nav.map((item) => (
+            <a href={p(item.href)} aria-current={strip(Astro.url.pathname) === item.href ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+          <a href={playLink('com.kdpixels.iconpacks.monoic')}>Play Store</a>
+          <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">◐</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-blockwise">
+          <a class="logo" href={p('/')} style="font-size: 1.1rem">
+            <span class="dot"></span>
+            <span>KD Pixels</span>
+          </a>
+          <span class="dim" style="font-size: 0.9rem; max-width: 30ch">
+            Crafted in a tiny workshop. Thoughtful apps, icons &amp; digital experiences.
+          </span>
+        </div>
+        <div class="footer-blockwise">
+          <span class="eyebrow" style="margin-bottom: 0.5rem">Discover</span>
+          {nav.map((item) => <a href={p(item.href)}>{item.label}</a>)}
+        </div>
+        <div class="footer-blockwise">
+          <span class="eyebrow" style="margin-bottom: 0.5rem">Elsewhere</span>
+          <div class="social-links">
+            {site.socials.map((s) => <a href={s.href} rel="me noopener">{s.label}</a>)}
+          </div>
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </div>
+      </div>
+      <div class="container copyright">
+        © {new Date().getFullYear()} {site.author} · kdpixels.com
+      </div>
+    </footer>
+
+    <script is:inline>
+      document.getElementById('theme-toggle')?.addEventListener('click', function () {
+        var el = document.documentElement;
+        var next = el.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        el.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+    </script>
+  </body>
+</html>

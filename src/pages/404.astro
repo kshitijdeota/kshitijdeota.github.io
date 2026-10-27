@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import { p } from '../utils/base';
+---
+
+<Base title="404 — page not found">
+  <div class="section" style="text-align: center">
+    <div class="container">
+      <span class="eyebrow">404</span>
+      <h1>This screen's icon is missing</h1>
+      <p class="dim" style="margin-inline: auto">The page you asked for isn't here. The catalog is, though:</p>
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap">
+        <a class="btn btn-primary" href={p('/')}>Home</a>
+        <a class="btn btn-ghost" href={p('/apps/')}>All apps</a>
+      </div>
+    </div>
+  </div>
+</Base>

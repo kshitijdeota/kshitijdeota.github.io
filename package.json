@@ -1,0 +1,19 @@
+{
+  "name": "kdpixels.com",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KD Pixels — icon packs, UI design & front-end development",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "sync": "bash scripts/dev-sync.sh",
+    "deploy-test": "bash scripts/build-deploy.sh"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.6.0",
+    "astro": "^5.14.0"
+  }
+}

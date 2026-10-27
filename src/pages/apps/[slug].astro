@@ -1,0 +1,112 @@
+---
+import Base from '../../layouts/Base.astro';
+import { apps, playLink, relatedApps } from '../../data/apps';
+import { p } from '../../utils/base';
+
+export function getStaticPaths() {
+  return apps.map((app) => ({ params: { slug: app.slug }, props: { app } }));
+}
+
+const { app } = Astro.props;
+const related = relatedApps(app);
+const playUrl = playLink(app.pkg);
+
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: app.name,
+  applicationCategory: 'Personalization',
+  operatingSystem: 'Android',
+  description: app.description,
+  url: `https://kdpixels.com/apps/${app.slug}/`,
+  installUrl: playUrl,
+  ...(app.rating && {
+    aggregateRating: { '@type': 'AggregateRating', ratingValue: app.rating, bestRating: 5 },
+  }),
+};
+---
+
+<Base title={app.name} description={app.tagline} jsonld={jsonld}>
+  <div class="page-head" style="padding-bottom: 2.5rem">
+    <div class="container" style="display:grid; gap: 2.5rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center">
+      <div>
+        <a href={p('/apps/')} class="dim" style="font-size: 0.9rem">← All apps</a>
+        <h1 style="margin-top: 0.75rem">{app.name}</h1>
+        <p class="lead">{app.tagline}</p>
+        <div class="badges" style="margin-top: 1.25rem">
+          {app.rating && <span class="badge highlight">★ {app.rating} on Google Play</span>}
+          <span class="badge">{app.downloads} installs</span>
+          <span class="badge">{app.price}{app.priceNote ? ` · ${app.priceNote}` : ''}</span>
+          {app.iconCount && <span class="badge">{app.iconCount.toLocaleString()}+ icons</span>}
+        </div>
+        <div style="margin-top: 1.75rem; display:flex; gap: 1rem; flex-wrap: wrap">
+          <a class="btn btn-primary" href={playUrl}>Get it on Google Play</a>
+        </div>
+      </div>
+      <div>
+        <div class="app-art" style={`aspect-ratio: 4/3; border-radius: 16px; background: linear-gradient(135deg, hsl(${app.hue} 35% 16%), hsl(${app.hue} 45% 8%))`}>
+          <div class="tile" style="width: 110px; height: 110px; font-size: 2.4rem">◐</div>
+        </div>
+        <p class="dim" style="font-size: 0.82rem; margin-top: 0.6rem; text-align: center">Screenshots — real device assets coming (self-hosted from the Play Console media kit).</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="section" style="padding-top: 1rem">
+    <div class="container" style="max-width: 720px">
+      <h2>About this pack</h2>
+      <p>{app.description}</p>
+
+      <h2 style="margin-top: 2.5rem">Launcher compatibility</h2>
+      <div class="badges" style="flex-direction: row">
+        {app.launchers.map((l) => <span class="badge">{l}</span>)}
+      </div>
+
+      <h2 style="margin-top: 2.5rem">FAQ</h2>
+      <div id="faq" style="display: grid; gap: 0.75rem">
+        <div class="card"><div class="card-body">
+          <h3 style="margin-bottom: 0.25rem">How do I apply the pack?</h3>
+          <p class="dim">Install a compatible launcher (Nova, Lawnchair, Niagara, Smart Launcher…), open the pack's dashboard app, and tap Apply. Launcher settings → Display/Icons → Icon pack also works on most launchers.</p>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <h3 style="margin-bottom: 0.25rem">Missing an icon?</h3>
+          <p class="dim">Use the built-in icon request tool in the app dashboard, or the app's request workflows. Requests are filled in steady update cycles — see the Play listing changelog.</p>
+        </div></div>
+        {app.family === 'monoic' && (
+          <div class="card"><div class="card-body">
+            <h3 style="margin-bottom: 0.25rem">Which Monoic variant should I pick?</h3>
+            <p class="dim">White for dark wallpapers &amp; AMOLED blacks; Black for light wallpapers; SQ for squircle-shaped icons. Same design language, different silhouettes.</p>
+          </div></div>
+        )}
+        {app.kind === 'mask' && (
+          <div class="card"><div class="card-body">
+            <h3 style="margin-bottom: 0.25rem">What is an icon mask vs an icon pack?</h3>
+            <p class="dim">A pack replaces each app icon with a hand-crafted glyph. A mask re-shapes every icon on the launcher into one consistent form — instant, full coverage.</p>
+          </div></div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0">
+    <div class="container">
+      <h2>You might also like</h2>
+      <div class="card-grid" style="margin-top: 1.5rem">
+        {related.map((r) => (
+          <a class="card" href={p(`/apps/${r.slug}/`)}>
+            <div class="app-art" style={`background: linear-gradient(135deg, hsl(${r.hue} 35% 16%), hsl(${r.hue} 45% 8%))`}>
+              <div class="tile">◐</div>
+            </div>
+            <div class="card-body">
+              <div class="title">{r.name}</div>
+              <div class="badges">
+                {r.rating && <span class="badge highlight">★ {r.rating}</span>}
+                <span class="badge">{r.priceNote ?? 'Free'}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
