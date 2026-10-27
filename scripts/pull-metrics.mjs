@@ -18,13 +18,24 @@
  */
 
 import { Storage } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Google's documented requirement for the reports bucket:
+// OAuth2 scope must be devstorage.read_only (NOT the SDK's cloud-platform default)
+// https://support.google.com/googleplay/android-developer/answer/6135870
+const GCS_SCOPE = 'https://www.googleapis.com/auth/devstorage.read_only';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
 const OUT = resolve(ROOT, 'src/data/metrics.json');
+
+// Authoritative per-developer reports bucket — from Play Console →
+// Download reports → "Copy Cloud Storage URI" (shared by the account owner).
+// Guesses below are only fallbacks for a fresh rebuild.
+const PINNED_BUCKETS = ['pubsite_prod_rev_15742151642195349260'];
 
 // From the public dev page URL: store/apps/dev?id=8037609104948916115
 const DEV_ID = '8037609104948916115';
@@ -52,7 +63,17 @@ function splitLine(line) {
   return line.split(',').map((s) => s.trim());
 }
 
-function parseCsv(text) {
+/** report CSVs are UTF-16 (BOM-marked per Google's docs); decode accordingly */
+function decodeCsv(buf) {
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) {
+    let s = buf.toString('utf16le');
+    return s.replace(/^\uFEFF/, '');
+  }
+  return buf.toString('utf8');
+}
+
+function parseCsvText(text) {
+  text = text.replace(/^\uFEFF/, '');
   const lines = text.trim().split(/\r?\n/);
   const headers = splitLine(lines[0]);
   const rows = lines.slice(1).map(splitLine);
@@ -82,23 +103,41 @@ function pickLatest(names, pkg, monthLabels) {
 }
 
 async function main() {
-  const storage = new Storage({ keyFilename: keyFile() });
+  const auth = new GoogleAuth({
+    keyFile: keyFile(),
+    scopes: [GCS_SCOPE],
+  });
+  const client = await auth.getClient();
+  const storage = new Storage({ authClient: client });
 
-  // Bucket name: pubsite_prod_rev_<dev id, usually with a leading zero>
-  const candidates = [`pubsite_prod_rev_0${DEV_ID}`, `pubsite_prod_rev_${DEV_ID}`];
+  const candidates = [...PINNED_BUCKETS, `pubsite_prod_rev_0${DEV_ID}`, `pubsite_prod_rev_${DEV_ID}`];
+
+  // Pin: Play Console grants mirror to object-level ACLs (storage.objects.*),
+  // NOT storage.buckets.get — so skip exists() and probe by listing objects.
   let bucket = null;
   for (const name of candidates) {
     const b = storage.bucket(name);
-    const [exists] = await b.exists();
-    if (exists) { bucket = b; break; }
+    try {
+      const [files] = await b.getFiles({ maxResults: 1 });
+      bucket = b;
+      console.log(`bucket pinned: ${name} (${files.length} sample file)`);
+      break;
+    } catch (e) {
+      if (String(e.message).includes('pubsite_prod_rev') === false) { /* not a 404 */ }
+      // fall through — candidate unusable
+    }
   }
   if (!bucket) {
-    // fallback: enumerate buckets prefixed pubsite_prod_rev_
-    const [buckets] = await storage.getBuckets();
-    bucket = buckets.find((b) => b.name.startsWith('pubsite_prod_rev_'));
-  }
-  if (!bucket) {
-    console.error('No pubsite_prod_rev_* bucket visible to this service account.\nCheck the Play Console grant ("View app information", all apps), then retry.');
+    console.error(
+      'No pubsite_prod_rev_* bucket visible to this service account.\n' +
+      'Checks:\n' +
+      '  1. Play Console → Users & permissions → the SA email must exist there,\n' +
+      '     with "View app information" set to Global (all apps).\n' +
+      '  2. Fresh grants can take a few minutes to propagate.\n' +
+      '  3. If it still fails, open Play Console → Download reports → Statistics,\n' +
+      '     click "Copy Cloud Storage URI" and share it — I will pin the exact\n' +
+      '     bucket name instead of guessing it.\n'
+    );
     process.exit(2);
   }
   console.log(`bucket: ${bucket.name}`);
@@ -129,17 +168,23 @@ async function main() {
     const instName = pickLatest(instNames, pkg, monthLabels);
     if (instName) {
       const [buf] = await bucket.file(instName).download();
-      const { headers, rows } = parseCsv(buf.toString('utf8'));
-      // cumulative columns seen in the wild: "Total Users (Cumulative)",
-      // "Active Device Installs"(overview); flexible in case of format drift
-      const col =
-        findCol(headers, [/cumulative/i, /active device installs/i, /^total.*installs/i]);
-      const dateCol = 0;
+      const { headers, rows } = parseCsvText(decodeCsv(buf));
+      // cumulative installs — prefer the metric that matches the public store
+      // band ("Installs on active devices"), documented hotline names:
+      // Current Device Installs / Installs on active devices / Total User Installs
+      const col = findCol(headers, [
+        /^installs on active devices/i,
+        /^total user installs/i,
+        /^current (device|user) installs/i,
+        /cumulative/i,
+      ]);
       const dateColIdx = headers.findIndex((h) => /date/i.test(h));
       if (rows.length && col >= 0 && dateColIdx >= 0) {
         const last = rows[rows.length - 1];
         entry.installs = num(last[col]);
         entry.statsDate = last[dateColIdx];
+      } else if (import.meta.env?.DEV) {
+        console.warn(`installs: no cumulative column in ${instName}`, headers);
       }
     }
 
@@ -148,13 +193,13 @@ async function main() {
     const rateName = pickLatest(rNames, pkg, monthLabels);
     if (rateName) {
       const [buf] = await bucket.file(rateName).download();
-      const { headers, rows } = parseCsv(buf.toString('utf8'));
+      const { headers, rows } = parseCsvText(decodeCsv(buf));
       if (rows.length) {
         const last = rows[rows.length - 1];
-        const cCol = findCol(headers, [/total number of ratings/i, /number of ratings/i]);
-        const aCol = findCol(headers, [/^rating$/i, /^average rating(?! for day)/i]);
-        if (cCol >= 0) entry.ratingCount = num(last[cCol]);
+        const aCol = findCol(headers, [/^total average rating/i, /^rating$/i]);
+        const cCol = findCol(headers, [/total number of ratings/i, /number of ratings/i, /total (5\*)? ?ratings/i]);
         if (aCol >= 0) entry.rating = num(last[aCol]);
+        if (cCol >= 0) entry.ratingCount = num(last[cCol]);
       }
     }
 
