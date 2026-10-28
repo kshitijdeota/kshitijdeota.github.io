@@ -70,25 +70,33 @@ other things (panel, legacy, webiction WordPress, pma). We reuse:
 SSH aliases (in `~/.ssh/config` on the Mac): `jellyfinbox` (user kd),
 `jellyfinboxadmin` (root).
 
-### Metrics retry timer (temporary automation pattern)
+### Running the metrics ingest by hand
 
-Play Console permission changes mirror into the GCS reports-bucket ACL with
-lag (up to 24h). While waiting, a **transient, self-stopping** systemd timer
-runs the ingest on the server:
+The Play→GCS permission mirror landed 2026-10-28, so the ingest works. The
+transient retry timer used while waiting is **retired** (it also died on the
+server reboot) — do not restart it. Run it on the server:
 
 ```
-ssh root@192.168.0.131
-systemd-run --unit=kdpixels-metrics-retry \
-  --on-calendar='*:0/10' \
-  bash /home/kd/sites/kdpixels.com/scripts/metrics-try.sh
+ssh jellyfinbox
+cd /home/kd/sites/kdpixels.com
+KDPX_SA_KEY=/home/kd/.secrets/play-sa.json node scripts/pull-metrics.mjs
 ```
 
-`metrics-try.sh` stops `kdpixels-metrics-retry.timer` itself on first
-success (transient units then vanish — no cleanup needed). Log:
-`/home/kd/logs/metrics-retry.log` on the server. Status: `tail` the log.
-**Prefer this pattern over long-running background loops in an agent
-session** — agent-side background tasks die with the session/server restarts
-and waste tokens.
+then bring the result back and commit it:
+
+```
+rsync -q jellyfinbox:/home/kd/sites/kdpixels.com/src/data/metrics.json src/data/metrics.json
+```
+
+A full run lists ~39k bucket objects and downloads ~900 monthly install CSVs
+(for the lifetime sums) plus a couple of ratings files per app — a couple of
+minutes. Nightly CI does this automatically once the repo secret exists.
+
+**Pattern for future waiting jobs**: a transient, self-stopping systemd timer
+(`systemd-run --unit=… --on-calendar=… bash scripts/metrics-try.sh`) recycled
+the work every 10 min and stopped itself on success — see `scripts/metrics-try.sh`.
+Prefer that over long-running background loops in an agent session, which die
+with the session/server restarts and waste tokens.
 
 ## Play Store metrics pipeline
 
@@ -105,10 +113,19 @@ and waste tokens.
   - OAuth scope MUST be `https://www.googleapis.com/auth/devstorage.read_only`
     (Google's documented requirement; the Storage SDK's default
     `cloud-platform` scope does NOT work).
-- CSV gotchas (both verified the hard way): report CSVs are **UTF-16 with
-  BOM** — decode by BOM, not utf8; cumulative installs column is
-  **"Installs on active devices"** (matches the public store band);
-  ratings count column may be absent in some months — code falls back.
+- CSV gotchas (verified against live data 2026-10-28): report CSVs are
+  **UTF-16 with BOM** — decode by BOM, not utf8. Installs have **no lifetime
+  counter column**: `Total User Installs` is deprecated and reads **0** in
+  current files, and `Active Device Installs` is *current users on device*
+  (Monoic White ≈ 63k) — **not** the store band. The figure that reproduces
+  the public band is the **lifetime sum of `Daily Device Installs`** across
+  every monthly `stats/installs/installs_<pkg>_<YYYYMM>_overview.csv`
+  (Monoic White = 1.33M ⇒ "1M+"). The script stores that as `installs` and
+  keeps `installsActive` alongside. Ratings country files use **ISO-2 codes**
+  (`US`, `JP`, `IN`) and hold only a few trailing days — a country absent
+  from the file genuinely had no ratings that month (e.g. Bubble has no US),
+  so `ratingUS` stays null and the US→JP→global fallback applies.
+  Ratings count column may be absent in some months — code falls back.
 - `pull-metrics.mjs` writes `src/data/metrics.json` → commit it (builds read
   it; pages fall back to curated bands in `apps.ts` while it's a stub).
 - CI: `.github/workflows/play-stats.yml` (nightly 03:00 IST) needs repo
@@ -147,16 +164,25 @@ and waste tokens.
 8. Commit message style: concise imperative, explain why. Pushes go to
    `astro-rebuild` until cutover.
 
-## Current state / next steps (as of 2026-10-28)
+## Current state / next steps (as of 2026-10-29)
 
 - **Site is an Android apps hub** (portfolio removed): home shows the full
   9-app catalogue + "In development" rail (Monoic Widgets family, BB Icons),
   apps pages carry the US-first live-rating overlay.
-- Metrics ingest: code done & verified up to the ACL mirror; **waiting on
-  Google's Play→GCS permission mirror** (server timer retries every 10 min,
-  log `/home/kd/logs/metrics-retry.log`).
+- **Metrics ingest is LIVE and working** (2026-10-28): Google's Play→GCS
+  permission mirror landed; `src/data/metrics.json` now holds real figures for
+  all 9 apps. The retry timer is **gone** (transient unit died on the server
+  reboot of 2026-10-28 14:40 — and is no longer needed). Do not restart it;
+  run `scripts/pull-metrics.mjs` by hand or let the nightly CI do it.
+- **Curated bands in `apps.ts` are now stale for the Glass Series** — live
+  lifetime installs are much lower than the curated labels (Glassy 14.5K not
+  50K+; Droplet 263 not 10K+; Glass Waves 3K, Bubble 522, Moonlight 2K not
+  10K+). Live figures override them on the site, but the curated fallbacks
+  should be corrected so a stub state doesn't overstate. **Owner decision
+  pending.**
 - Still open:
-  - [ ] First real metrics pull (US/JP ratings + installs) → verify → commit
+  - [x] First real metrics pull (US/JP ratings + installs) → verified → committed
+  - [ ] Correct stale Glass Series install bands in `apps.ts` (owner decision)
   - [ ] GH repo secret `KDPX_PLAY_SA_JSON` (owner action) for nightly CI
   - [ ] Self-host app screenshots (from Play Console media kit)
   - [ ] Monoic Widgets pages when the family nears release (apps.ts entries)

@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { apps, priceLabel, seriesMeta } from '../../data/apps';
 import { site } from '../../data/site';
 import { upcoming } from '../../data/upcoming';
+import { metricFor, headlineRating, formatInstalls, metricsAsOf } from '../../data/metrics';
 import { p } from '../../utils/base';
 
 const jsonld = {
@@ -51,10 +52,21 @@ const bySeries = Object.fromEntries(
                   <div class="title">{app.name}</div>
                   <p>{app.tagline}</p>
                   <div class="badges">
-                    {app.rating && <span class="badge highlight">★ {app.rating}</span>}
-                    <span class="badge">{app.downloads}</span>
-                    {app.kind === 'mask' && <span class="badge">Icon mask</span>}
-                    <span class="badge">{priceLabel(app)}</span>
+                    {(() => {
+                      const m = metricFor(app.pkg);
+                      const rating = headlineRating(m, app.rating);
+                      const installs = formatInstalls(m?.installs) ?? app.downloads;
+                      return (
+                        <>
+                          {rating != null && (
+                            <span class="badge highlight">★ {rating.toFixed(1)}</span>
+                          )}
+                          <span class="badge">{installs}</span>
+                          {app.kind === 'mask' && <span class="badge">Icon mask</span>}
+                          <span class="badge">{priceLabel(app)}</span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </a>

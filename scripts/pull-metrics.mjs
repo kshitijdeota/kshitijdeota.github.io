@@ -93,6 +93,20 @@ function num(s) {
   return Number.isFinite(n) ? n : null;
 }
 
+/** run an async mapper over items with bounded concurrency */
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) || 1 }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
 /** pick the newest, non-overflow month file for a package */
 function pickLatest(names, pkg, monthLabels) {
   const matching = names
@@ -142,11 +156,9 @@ async function main() {
   }
   console.log(`bucket: ${bucket.name}`);
 
-  // enumerate report files once
-  const names = [];
-  await bucket.getFilesAutoPaginated({ prefix: 'stats/' }).then(([files]) => {
-    for (const f of files) names.push(f.name);
-  });
+  // enumerate report files once (getFiles auto-paginates by default)
+  const [allFiles] = await bucket.getFiles({ prefix: 'stats/' });
+  const names = allFiles.map((f) => f.name);
   console.log(`report files visible: ${names.length}`);
 
   // month labels: current + previous 3 (overview files exist per month)
@@ -164,30 +176,49 @@ async function main() {
     const entry = { statsDate: null };
 
     // ---- installs ----
-    const instNames = names.filter((n) => n.startsWith('stats/installs/'));
-    const instName = pickLatest(instNames, pkg, monthLabels);
-    if (instName) {
-      const [buf] = await bucket.file(instName).download();
-      const { headers, rows } = parseCsvText(decodeCsv(buf));
-      // cumulative installs — prefer the metric that matches the public store
-      // band ("Installs on active devices"), documented hotline names:
-      // Current Device Installs / Installs on active devices / Total User Installs
-      const col = findCol(headers, [
-        /^installs on active devices/i,
-        /^total user installs/i,
-        /^current (device|user) installs/i,
-        /cumulative/i,
-      ]);
-      const dateColIdx = headers.findIndex((h) => /date/i.test(h));
-      if (rows.length && col >= 0 && dateColIdx >= 0) {
+    // The reports carry per-day figures, NOT a lifetime counter: the
+    // `Total User Installs` column is deprecated and reads 0 in current files,
+    // and `Active Device Installs` is *current users on device* (Monoic White
+    // = ~63k), far below the public store band (1M+).
+    // The figure that reproduces the public band is the lifetime SUM of
+    // `Daily Device Installs` across every monthly overview file (verified:
+    // Monoic White = 1.33M -> "1M+" on Play). That is stored as `installs`;
+    // `installsActive` keeps the current-users figure alongside it.
+    const instNames = names
+      .filter((n) => n.startsWith('stats/installs/') && n.endsWith('_overview.csv'))
+      .filter((n) => n.includes(`_${pkg}_`))
+      .sort(); // YYYYMM sorts chronologically
+    if (instNames.length) {
+      const months = await mapLimit(instNames, 8, async (name) => {
+        const [buf] = await bucket.file(name).download();
+        const { headers, rows } = parseCsvText(decodeCsv(buf));
+        const dCol = findCol(headers, [/^daily device installs/i]);
+        const aCol = findCol(headers, [
+          /^active device installs/i,
+          /^installs on active devices/i,
+          /^current (device|user) installs/i,
+        ]);
+        const dateCol = findCol(headers, [/^date/i]);
+        let daily = 0;
+        for (const r of rows) {
+          const v = dCol >= 0 ? num(r[dCol]) : null;
+          if (v != null) daily += v;
+        }
         const last = rows[rows.length - 1];
-        entry.installs = num(last[col]);
-        entry.statsDate = last[dateColIdx];
-      } else if (import.meta.env?.DEV) {
-        console.warn(`installs: no cumulative column in ${instName}`, headers);
-      }
-    }
+        return {
+          daily,
+          active: last && aCol >= 0 ? num(last[aCol]) : null,
+          date: last && dateCol >= 0 ? last[dateCol] : null,
+        };
+      });
 
+      const lifetime = months.reduce((sum, m) => sum + (m.daily || 0), 0);
+      if (lifetime > 0) entry.installs = lifetime;
+      const active = [...months].reverse().find((m) => m.active != null);
+      if (active) entry.installsActive = active.active;
+      const dated = [...months].reverse().find((m) => m.date);
+      if (dated) entry.statsDate = dated.date;
+    }
     // ---- ratings (global) ----
     const rNames = names.filter((n) => n.startsWith('stats/ratings/'));
     const rateName = pickLatest(

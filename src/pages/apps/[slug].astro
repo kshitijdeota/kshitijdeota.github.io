@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { apps, playLink, relatedApps, priceLabel } from '../../data/apps';
-import { metricFor, metricsAsOf, headlineRating } from '../../data/metrics';
+import { metricFor, metricsAsOf, headlineRating, formatInstalls } from '../../data/metrics';
 import { p } from '../../utils/base';
 
 export function getStaticPaths() {
@@ -12,7 +12,7 @@ const { app } = Astro.props;
 const related = relatedApps(app);
 const playUrl = playLink(app.pkg);
 const m = metricFor(app.pkg);
-const installsLabel = m?.installs != null ? `${m.installs.toLocaleString('en-US')} installs` : `${app.downloads} installs`;
+const installsLabel = m?.installs != null ? `${formatInstalls(m.installs)} installs` : `${app.downloads} installs`;
 const shownRating = headlineRating(m, app.rating);
 const asOf = metricsAsOf() ? new Date(metricsAsOf()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
 
@@ -44,7 +44,9 @@ const jsonld = {
         <h1 style="margin-top: 0.75rem">{app.name}</h1>
         <p class="lead">{app.tagline}</p>
         <div class="badges" style="margin-top: 1.25rem">
-          <span class="badge highlight">★ {shownRating ?? '—'} on Google Play</span>
+          <span class="badge highlight">
+            ★ {shownRating != null ? shownRating.toFixed(1) : '—'} on Google Play{m?.ratingUS != null ? ' (US)' : ''}
+          </span>
           <span class="badge">{installsLabel}</span>
           <span class="badge">{priceLabel(app)}</span>
           {app.iconCount && <span class="badge">{app.iconCount.toLocaleString()}+ icons</span>}

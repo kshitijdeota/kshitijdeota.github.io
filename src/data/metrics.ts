@@ -11,7 +11,11 @@
 import raw from './metrics.json';
 
 export interface Metric {
+  /** lifetime installs — sum of Daily Device Installs across monthly reports
+   *  (this is the figure that matches the public Play store band) */
   installs: number | null;
+  /** current users on device (Play's "Installs on active devices") */
+  installsActive: number | null;
   ratingUS: number | null;
   ratingJP: number | null;
   ratingGlobal: number | null;
@@ -51,6 +55,18 @@ export function totalInstalls(packages: string[]): number | null {
     if (typeof m?.installs === 'number') { sum += m.installs; any = true; }
   }
   return any ? sum : null;
+}
+
+/**
+ * Compact install label, framed like Play's own bands (1.3M / 178K / 522).
+ * The underlying `installs` figure is a sum of daily device installs, so it
+ * does not carry exact-count precision — never render it verbatim.
+ */
+export function formatInstalls(n: number | null): string | null {
+  if (n == null) return null;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1).replace(/\.0$/, '')}K`;
+  return `${n}`;
 }
 
 /** Headline rating: US → JP → global → curated fallback */
