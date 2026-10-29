@@ -92,6 +92,30 @@ A full run lists ~39k bucket objects and downloads ~900 monthly install CSVs
 (for the lifetime sums) plus a couple of ratings files per app — a couple of
 minutes. Nightly CI does this automatically once the repo secret exists.
 
+### Financial reports (earnings / IAP revenue)
+
+`earnings/` and `sales/` objects are **listable but not readable** until the
+service account has Play Console's **Account permissions → Financial data →
+"View financial data, orders, and cancellation survey responses"**. Symptom:
+listing works, `storage.objects.get` returns 403. Owner ticked this on
+2026-10-29; it mirrors like the stats grant (minutes → ~24h).
+
+A transient watcher polls for the mirror and self-stops on success
+(`scripts/earnings-try.sh` → `scripts/earnings-watch.mjs`):
+
+```
+ssh jellyfinboxadmin
+systemd-run --unit=kdpixels-earnings-watch --on-calendar='*:0/10' \
+  bash /home/kd/sites/kdpixels.com/scripts/earnings-try.sh
+```
+
+Log: `/home/kd/logs/earnings-watch.log`. The earnings archives are **monthly
+zips** (`earnings_<YYYYMM>_<id>-<n>.zip`, ~119 of them, newest 202609)
+containing transaction-level CSVs — they carry `Product Title`, `Product id`,
+`Product Type`, `Sku Id`, `Currency of Sale` and `Amount (Merchant
+Currency)`, so **per-SKU units and revenue need no extra permission**. Read
+the real header before writing a parser; do not guess the schema.
+
 **Pattern for future waiting jobs**: a transient, self-stopping systemd timer
 (`systemd-run --unit=… --on-calendar=… bash scripts/metrics-try.sh`) recycled
 the work every 10 min and stopped itself on success — see `scripts/metrics-try.sh`.
