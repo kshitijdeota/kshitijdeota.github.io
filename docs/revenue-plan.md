@@ -1,18 +1,29 @@
-# Play revenue plan — from ~$120/yr to ≥$500/yr net
+# Play revenue plan — $120/month → $500/month net
 
-Working notes compiled 2026-10-29 from live Play reports (bucket
-`pubsite_prod_rev_15742151642195349260`). Figures are from
-`stats/installs`, `stats/ratings`, `stats/store_performance`.
-
-**Caveat:** the service account has *statistics* access only — **0 financial
-reports are visible**. Revenue below is *inferred* from acquisition counts,
-not measured. Fixing that is item 0.
+Compiled 2026-10-29 from live Play reports (bucket
+`pubsite_prod_rev_15742151642195349260`): `stats/installs`, `stats/ratings`,
+`stats/store_performance`, `acquisition/`.
 
 ---
 
-## 1. What the data actually says
+## 0. The business model (as stated by the owner, 2026-10-29)
 
-### Monoic White — free, and the only thing with real reach
+- **All free packs carry IAPs used to request icons that are missing** from
+  the user's phone. This — not pack sales — has been the whole premise since
+  day one. So the monetised product is an **icon-request service**, sold at
+  the moment a user hits a gap.
+- **Paid packs are a bootstrap**: launch paid to fund the work, then flip to
+  free-with-IAP once the pack passes ~1,000 icons.
+- **Ads are a dead end**: an icon pack is set once and the app is rarely
+  opened again. No inventory, no session. (Correct — and this is the single
+  most important structural fact here; see §2.)
+- **Target: $500/month net**, up from ~$120/month. That is **4.2×**.
+
+---
+
+## 1. What the data says
+
+### Monoic White — the only real distribution
 
 | month | store visitors | acquisitions | conversion |
 |---|---|---|---|
@@ -22,11 +33,11 @@ not measured. Fixing that is item 0.
 | 2026-06 | 41,873 | 8,294 | 19.8% |
 | 2026-09 | 34,221 | 6,173 | 18.0% |
 
-- **~105,000 installs in the last 12 months**, 63,000 active devices,
-  1.33M lifetime.
-- Conversion held steady at 18–20% — the *listing* is not the problem.
-- **Traffic halved in 13 months** (66k → 34k visitors). New installs went
-  13.5k/mo → 6.5k/mo. This is the fire: at this rate revenue halves again.
+- **~105,000 installs in the last 12 months**, 63,000 active devices, 1.33M
+  lifetime.
+- Conversion steady at 18–20% ⇒ the *listing* is healthy.
+- **Visitors halved in 13 months** (66k → 34k). New installs 13.5k → 6.5k/mo.
+  The decline, not the conversion rate, is what caps revenue.
 
 ### Market split (Monoic White, Sep 2026)
 
@@ -39,142 +50,147 @@ not measured. Fixing that is item 0.
 | ID | 1,417 | 16.2% |
 | BR | 1,243 | 20.7% |
 
-India is the largest named market but converts **half as well** as US/RU —
-confirms the US-first positioning. Russia's 26.7% is a surprise worth a
-localised listing test.
+India is the largest named market and converts **half as well** as US/RU —
+confirms the US-first framing. Russia's 26.7% is worth a localised test.
 
-### Glass Series — paid, and structurally dead
+### Glass Series — paid, structurally dead
 
 | app | monthly visitors | monthly acquisitions | conversion |
 |---|---|---|---|
-| Glassy | 3,890 | **8** | **0.2%** |
-| Glass Waves / Droplet / Bubble / Moonlight | — | 0–7 combined | ~0% |
+| Glassy | 3,890 | 8 | **0.2%** |
 
-**8 sales/month on 3,890 visitors.** At ~$2.25 net per sale that is
-~$18/mo ≈ **$216/yr gross → ~$150 net**. That single number *is* the
-business today. Every other paid pack contributes noise.
+Per the owner's own rule these flip to free at 1,000 icons. At 0.2%
+conversion the paid gate is costing far more in install volume than it earns.
 
 ### Dormant packs (squircle1–9, crystalorb1/3/4/5, heartly*, clover)
 
-Last 12 months before takedown: **1–9 installs each**. These were not
-underperforming — they never had demand. They are *artwork assets*, not
-product assets.
+1–9 installs each in their final 12 months before takedown: no demand.
+They are **artwork assets**, not products.
 
 ---
 
-## 2. The diagnosis in one line
+## 2. The structural diagnosis
 
-> 105,000 installs/year flow into a free app that earns nothing, while the
-> only monetised surface converts 0.2% and produces ~8 sales/month.
+> An icon pack is consumed **once**. There is no session, no repeat surface,
+> no ad inventory — so LTV is capped at whatever the user pays in their first
+> few minutes, and every extra dollar has to come from a *higher price at that
+> moment*, not from usage over time.
 
-The problem is **not** ASO, not the site, and not the icon quality. It is
-that there is **no monetisation attached to the only distribution you have**.
+Revenue is therefore a function of **installs × conversion × ARPU** — three
+numbers, with the middle one already near its ceiling (18–20%).
+
+Working backwards from ~$120/mo net (≈$150 gross) across ~8,700 installs/mo
+at ~$2 ARPU gives roughly **75 IAP sales/month ≈ 0.86% of installs**. That is
+a normal, healthy rate. It is not the bottleneck.
+
+**The bottleneck is ARPU (~$2) and a shrinking install base.**
 
 ---
 
-## 3. The maths to $500/yr net
+## 3. Maths to $500/month net
 
-Target ≈ $600 gross/yr ≈ $50/mo gross (after ~15–30% Google cut + taxes).
+Target ≈ $625/mo gross (after Google's cut and taxes) — **4.2× current**.
 
-| lever | volume | rate | net/yr |
-|---|---|---|---|
-| **In-app purchase in Monoic White** | 105k installs/yr | **0.3%** @ $2.99 | **≈$700** ✅ |
-| same | 105k installs/yr | 1.0% @ $2.99 | ≈$2,400 |
-| Glassy → free + IAP | +700 installs/mo | 1% @ $2.99 | ≈$190 |
-| Monoic Player skins | unknown | — | potentially ≫ $500/mo |
+| path | what has to change | plausibility |
+|---|---|---|
+| Installs | 105k → 440k per year | ✗ traffic is falling |
+| Conversion | 0.86% → 3.6% | ✗ already at a healthy rate |
+| **ARPU** | **~$2 → ~$8.30** | ✓ only via a bundle/subscription |
+| **Mixed** | 1.7% conv × $4 ARPU | ✓ friction + price together |
+| **Monoic Player** | adding a second, recurring surface | ✓ the real growth axis |
 
-**A 0.3% conversion on traffic you already have beats the target four
-times over.** That is the whole plan.
+**You cannot price your way to 4× by selling *one* icon request at a time.**
+The only route is a product that is worth ~$8 in a single transaction, or a
+second product with a repeat surface.
 
 ---
 
 ## 4. Plan, ranked by ROI
 
-### Tier 1 — do first (≈2–4 weeks of work)
+### Tier 1 — ARPU (the direct answer to 4.2×)
 
-**1. Put a real IAP inside Monoic White.**
-One SKU — "KD Pixels All-Access" ($2.99–3.99) — unlocking every Monoic
-variant, every Glass pack as an icon style/overlay, and future packs.
-Surface it: first-run sheet, a "Get all packs" row in settings, and a
-persistent but dismissible card. This is the only lever that moves the
-number materially.
-*Open question for the owner:* the listings say "Free · in-app purchase" —
-does a working, promoted IAP actually exist today? If not, this is the
-single highest-value thing to build.
+**1. Turn "request icons" into a bundle, not a $2 one-off.**
+Offer three tiers at the point of need:
 
-**2. Stop selling $4 packs to 3,890 people who don't buy.**
-Glassy converts 0.2%. Make the Glass Series **free with an IAP unlock**
-(full icon set). Same traffic at 18% conversion ≈ **+700 installs/month**,
-a rating base, and a purchase surface — instead of 8 sales.
-Also reprice any remaining paid SKUs to **$2.49–2.99** (₹400 ≈ $4.80 is
-well above the icon-pack impulse threshold).
+| SKU | price (US) | what it is |
+|---|---|---|
+| Single request | current | unchanged — the entry point |
+| **Request pack** (10) | ~$3.99 | for people who just switched launchers |
+| **Pro / All-Access** | **~$7.99** | unlimited requests + all packs + future packs |
 
-**3. Arrest the traffic decline.**
-Visitors halved in 13 months at constant conversion, so this is
-distribution, not the listing. Check in order: crash-free rate (there are
-1,339 crash reports in the bucket), stale screenshots/video (last refresh
-unknown), review response rate, and Android 15/16 compatibility.
-Then run one deliberate listing experiment per month and measure in
-`store_performance`.
+The Pro tier is the whole point: it moves ARPU from ~$2 to ~$8 *without*
+needing a single extra install. At the current 0.86% rate that alone is
+~$500/mo. Realistically conversion on the $7.99 tier will be lower than on
+$2, so expect to land at 0.3–0.5% on Pro plus the existing single-request
+revenue — still ≈2–3×.
 
-### Tier 2 — the growth vehicle (1–3 months)
+**2. Sell at the moment of pain, not in a menu.**
+The request flow is the entire monetisation surface. When the user hits a
+missing icon, the paywall must appear *there* with the bundle offer, not in a
+settings screen. Every extra tap between "my icon is missing" and "pay" is
+lost revenue.
 
-**4. Ship Monoic Player out of beta.**
-Icon packs have a low ceiling; a Winamp-style player has genuine search
-intent and a skin marketplace is a natural, repeatable IAP (collections,
-nostalgia, whale-friendly). On disk at `~/Android/monoicplayer`.
-Blockers are the factory skins + quirks. Target: free player +
-10–15 skins at launch, skin store later. This is where $500/***mo*** —
-not $500/yr — becomes plausible.
+**3. Do not fix icon coverage blindly.**
+The IAP monetises *gaps*. Auto-matching more icons raises retention and
+ratings but shrinks the request funnel. Decide deliberately: broad coverage
+for the free tier (ratings, installs) + genuinely custom/niche requests behind
+Pro. Never strip the thing people pay for.
 
-**5. Reuse the dormant packs as content, not as apps.**
-Do **not** relaunch squircle1–9 / crystalorb1/3/4/5 / heartly* / clover as
-standalone listings: 1–9 installs/month means no demand, and each relaunch
-costs a listing, ASO effort and a support surface. Instead fold their icon
-artwork into Monoic White as selectable **icon styles**, and into the
-All-Access bundle. Same art, zero distribution cost, and it makes the IAP
-worth buying.
+### Tier 2 — Monoic Player + widgets (the 12-month engine)
 
-**6. BB Icons** — only ship it with a distinct hook (a specific aesthetic
-trend, not "another minimal pack"), and launch it free-with-IAP directly.
-A paid launch replicates Glassy's 0.2%.
+**4. The skinnable widget is the most valuable missing feature, not a quirk.**
+A player gets **opened daily** — that is a surface icon packs can never have.
+Adding a skinnable home-screen widget does three things at once:
 
-### Tier 0 — infrastructure (cheap, unblocks everything)
+- creates a **daily-visible ad/brand surface** (icon packs cannot),
+- makes **skins a repeat purchase** (collections, not a one-off),
+- unifies the product line — **a "Monoic theme" = icons + widget + player
+  skin** — which is exactly what a $7.99 bundle can credibly sell.
 
-**0. Measure revenue, don't infer it.**
-Add **"View financial data"** to the service account in Play Console, then
-extend `scripts/pull-metrics.mjs` to pull earnings reports. Right now the
-$500 target is being managed blind — we estimate revenue from install
-counts. Also pull `store_performance` (visitors/conversion) so listing
-experiments become measurable.
+**5. Ship Player out of beta with 10–15 factory skins**, free player + paid
+skins, then a skin store. This is where $500/***month*** becomes durable
+rather than a one-month spike. Source lives at `~/Android/monoicplayer`.
+
+### Tier 3 — reclaim traffic (protects the base)
+
+**6. Stop the 13-month decay.** Conversion is flat so this is distribution.
+Check crash-free rate (1,339 crash reports available), stale screenshots /
+video, review-response rate, Android 15/16 compatibility. One deliberate
+listing experiment per month, measured against `store_performance`.
+
+**7. Reuse dormant packs as content.** Fold squircle1–9 / crystalorb 1/3/4/5 /
+heartly* / clover artwork into Monoic White as **icon styles**, and into the
+Pro bundle. Do not relaunch them as apps — a listing with 1–9 installs/month
+has no demand and costs ASO + support forever.
+
+**8. Flip Glassy free (per the 1,000-icon rule).** 3,890 visitors/mo at 0.2%
+conversion is 8 sales; free-with-IAP it becomes ~700 installs/mo, a rating
+base, and another surface for the Pro offer.
 
 ---
 
-## 5. Site's supporting role
+## 5. Revenue measurement — status
 
-The hub site should earn its keep by capturing search intent the Play
-listing can't:
-
-- `/apps/monoic-white/` — target "minimal icon pack android", "monochrome
-  icon pack" (highest-intent existing traffic).
-- A **Monoic Player** page targeting "winamp for android", "classic music
-  player skins" — this is real search volume that currently has no landing
-  page.
-- Cross-links between series (already in place via `relatedApps`) to move
-  Monoic traffic toward Glass.
-
-Direct sales (Lemon Squeezy) make sense for **player skins and bundles**,
-not for icon-pack APKs — sideloading an icon pack is friction most users
-won't accept.
+- `earnings/` and `sales/` **objects are listed but not downloadable**: a
+  `storage.objects.get` 403 confirms the account lacks **"View financial
+  data"**. Latest visible file: `earnings_202609_8878602904322988-119.zip`
+  (119 monthly zips).
+- Once that permission is granted, add an earnings pull to
+  `scripts/pull-metrics.mjs` (the zips contain CSVs — inspect the real schema
+  before writing the parser rather than guessing) so ARPU per app per month
+  becomes a tracked number.
 
 ---
 
 ## 6. Summary
 
-1. Measure revenue properly (financial permission).
-2. Ship one All-Access IAP into Monoic White — 0.3% of existing installs
-   clears the goal.
-3. Make Glass free-with-IAP; stop selling $4 packs to a 0.2% funnel.
-4. Stop the 13-month traffic decay.
-5. Monoic Player is the long-term growth engine; dormant packs are
-   artwork, not products.
+1. Revenue is installs × conversion × **ARPU**. Conversion is healthy at
+   ~0.86%; installs are falling. **ARPU is the lever.**
+2. Ship a **Pro / All-Access bundle at ~$7.99** and surface it at the moment
+   an icon is missing. This is the direct path to 4.2×.
+3. Keep single requests as the entry tier; add a 10-pack in between.
+4. **Skinnable widgets + player skins** are the durable second engine, and
+   they unify icons/widgets/player into one sellable theme.
+5. Flip Glassy free; fold dormant packs in as icon styles; stop the traffic
+   decay.
+6. Get "View financial data" so ARPU stops being a guess.
