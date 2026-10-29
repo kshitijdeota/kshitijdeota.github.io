@@ -70,6 +70,29 @@ other things (panel, legacy, webiction WordPress, pma). We reuse:
 SSH aliases (in `~/.ssh/config` on the Mac): `jellyfinbox` (user kd),
 `jellyfinboxadmin` (root).
 
+### Power-loss resilience (this box loses power regularly)
+
+Cyclone/thunderstorm season (500 km out) causes repeated hard power cuts and
+unclean shutdowns. Assume any reboot happens **without warning**:
+
+- `kdpixels-dev.service` is `enabled` + `Restart=always` → comes back on its
+  own. Safe.
+- The static test build lives on disk (`/var/www/dev/kdpixels/`) → survives.
+- **`systemd-run --on-calendar` transient timers are wiped by any reboot.**
+  Use a persistent unit file in `/etc/systemd/system/` instead:
+  `Persistent=true`, `WantedBy=timers.target`, `systemctl enable --now`.
+- Long jobs must write atomically. `pull-metrics.mjs` writes
+  `metrics.json.tmp` then `rename()`s it, so a cut mid-write cannot leave a
+  truncated file that breaks the build.
+- After an unclean boot, the 30-second sanity check:
+  ```
+  systemctl is-active kdpixels-dev.service
+  systemctl list-timers --all | grep kdpixels
+  journalctl -b -p err --no-pager | tail
+  curl -sk --resolve box.local.kdpixels.com:443:192.168.0.131 -o /dev/null \
+    -w '%{http_code}\n' https://box.local.kdpixels.com/kdpixels/
+  ```
+
 ### Running the metrics ingest by hand
 
 The Play→GCS permission mirror landed 2026-10-28, so the ingest works. The
@@ -100,14 +123,20 @@ service account has Play Console's **Account permissions → Financial data →
 listing works, `storage.objects.get` returns 403. Owner ticked this on
 2026-10-29; it mirrors like the stats grant (minutes → ~24h).
 
-A transient watcher polls for the mirror and self-stops on success
-(`scripts/earnings-try.sh` → `scripts/earnings-watch.mjs`):
+A **persistent** watcher polls for the mirror (`scripts/earnings-try.sh` →
+`scripts/earnings-watch.mjs`). Persistent, not transient, precisely because
+this box reboots without warning: `systemd-run` timers never come back.
+Installed as `/etc/systemd/system/kdpixels-earnings-watch.{service,timer}`
+(`OnCalendar=*:0/10`, `Persistent=true`, `WantedBy=timers.target`).
 
 ```
 ssh jellyfinboxadmin
-systemd-run --unit=kdpixels-earnings-watch --on-calendar='*:0/10' \
-  bash /home/kd/sites/kdpixels.com/scripts/earnings-try.sh
+systemctl enable --now kdpixels-earnings-watch.timer
+systemctl list-timers kdpixels-earnings-watch.timer
 ```
+
+On success the script `systemctl disable --now`s the timer, so it does not
+resurrect itself after a later reboot.
 
 Log: `/home/kd/logs/earnings-watch.log`. The earnings archives are **monthly
 zips** (`earnings_<YYYYMM>_<id>-<n>.zip`, ~119 of them, newest 202609)
@@ -116,11 +145,13 @@ containing transaction-level CSVs — they carry `Product Title`, `Product id`,
 Currency)`, so **per-SKU units and revenue need no extra permission**. Read
 the real header before writing a parser; do not guess the schema.
 
-**Pattern for future waiting jobs**: a transient, self-stopping systemd timer
-(`systemd-run --unit=… --on-calendar=… bash scripts/metrics-try.sh`) recycled
-the work every 10 min and stopped itself on success — see `scripts/metrics-try.sh`.
-Prefer that over long-running background loops in an agent session, which die
-with the session/server restarts and waste tokens.
+**Pattern for future waiting jobs**: a systemd timer driving a single-attempt
+script — never a long-running background loop in an agent session (those die
+with the session and waste tokens). Use a **persistent unit file** enabled into
+`timers.target` with `Persistent=true` (see `kdpixels-earnings-watch.timer`),
+not `systemd-run --on-calendar`: transient timers are wiped by any reboot and
+this box reboots without warning. `scripts/metrics-try.sh` is the retired
+transient version and is kept only as a reference.
 
 ## Play Store metrics pipeline
 

@@ -19,7 +19,7 @@
 
 import { Storage } from '@google-cloud/storage';
 import { GoogleAuth } from 'google-auth-library';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -268,7 +268,12 @@ async function main() {
     console.log(`${pkg.padEnd(38)} ${label}`);
   }
 
-  writeFileSync(OUT, JSON.stringify(result, null, 2) + '\n');
+  // Write-then-rename: this box loses power often enough that a cut during a
+  // direct write could leave a truncated metrics.json (which would break the
+  // build). rename() within the same directory is atomic.
+  const tmp = `${OUT}.tmp`;
+  writeFileSync(tmp, JSON.stringify(result, null, 2) + '\n');
+  renameSync(tmp, OUT);
   console.log(`\nwrote ${OUT}`);
 }
 
